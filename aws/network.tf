@@ -51,15 +51,15 @@ resource "aws_internet_gateway" "gw" {
 resource "aws_route_table" "hub_public_rt" {
   vpc_id = aws_vpc.hub.id
 
-  # Ruta para que todo el tráfico 0.0.0.0/0 (Internet) salga por el Gateway
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.gw.id
-  }
-
   tags = {
     Name = "RT-Hub-Public"
   }
+}
+
+resource "aws_route" "hub_internet_access" {
+  route_table_id         = aws_route_table.hub_public_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.gw.id
 }
 
 # --- Asociación (Conecta la tabla de rutas a la subred pública) ---
