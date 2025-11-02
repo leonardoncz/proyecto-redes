@@ -35,3 +35,35 @@ resource "aws_instance" "web_server" {
 output "web_server_ip" {
   value = aws_instance.web_server.public_ip
 }
+
+
+
+# ------------------------------------------------
+# VM de Prueba (en Prod)
+# ------------------------------------------------
+resource "aws_instance" "test_vm_prod" {
+  ami           = data.aws_ami.amazon_linux_2.id
+  instance_type = "t3.micro"
+
+  # ¡Importante! Vive en la subred privada de Prod
+  subnet_id     = aws_subnet.prod_private.id
+
+  # Usa el nuevo firewall privado
+  vpc_security_group_ids = [aws_security_group.sg_private.id]
+
+  # Asigna la misma llave SSH (para poder "saltar" a ella)
+  key_name      = "proyecto-redes-key"
+  
+  # ¡Crucial! Asegurarnos de que NO tenga IP pública
+  associate_public_ip_address = false
+
+  tags = {
+    Name = "TestVM-Prod"
+  }
+}
+
+# --- Añade esta nueva "salida" al final ---
+output "test_vm_prod_private_ip" {
+  description = "IP Privada de la VM de prueba en Prod"
+  value       = aws_instance.test_vm_prod.private_ip
+}
