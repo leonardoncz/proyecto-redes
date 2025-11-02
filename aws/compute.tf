@@ -15,7 +15,7 @@ resource "aws_instance" "web_server" {
   ami           = data.aws_ami.amazon_linux_2.id
   
   # t2.micro está en la capa gratuita
-  instance_type = "t2.micro" 
+  instance_type = "t3.micro" 
   
   # Ponlo en nuestra subred pública
   subnet_id     = aws_subnet.hub_public.id
@@ -23,8 +23,8 @@ resource "aws_instance" "web_server" {
   # Asigna el firewall que acabamos de crear
   vpc_security_group_ids = [aws_security_group.sg_web.id] 
   
-  # (Opcional) Asigna una llave SSH para conectarte
-  # key_name      = "llave1ssh" 
+  # Asigna una llave SSH para conectarte
+  key_name      = "proyecto-redes-key" 
 
   tags = {
     Name = "WebServer-Hub"
