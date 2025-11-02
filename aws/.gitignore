@@ -1,0 +1,8 @@
+# Ignorar estados locales de Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Ignorar llaves (aunque no deberían estar aquí)
+*.json
+*.pem
