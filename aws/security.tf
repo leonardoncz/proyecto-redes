@@ -41,3 +41,44 @@ resource "aws_security_group" "sg_web" {
     Name = "SG-WebServer"
   }
 }
+
+
+# ------------------------------------------------
+# Firewall para la VM de Prueba (en Prod)
+# ------------------------------------------------
+resource "aws_security_group" "sg_private" {
+  name        = "private-vm-sg"
+  description = "Permite Ping y SSH solo desde la VPC-Hub"
+  vpc_id      = aws_vpc.prod.id # ¡Importante! Vive en la VPC-Prod
+
+  # Regla 1: Permitir Ping (ICMP)
+  # Solo desde el rango de IP de la VPC-Hub (10.10.0.0/16)
+  ingress {
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [aws_vpc.hub.cidr_block] # "10.10.0.0/16"
+  }
+
+  # Regla 2: Permitir SSH (Puerto 22)
+  # Solo desde la VPC-Hub. 
+  # (No podemos entrar desde internet, tenemos que "saltar" desde la VM del Hub)
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.hub.cidr_block] # "10.10.0.0/16"
+  }
+
+  # Regla de Salida: Permitir todo
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "SG-Private-Test-VM"
+  }
+}

@@ -34,6 +34,7 @@ resource "aws_subnet" "hub_public" {
 resource "aws_subnet" "prod_private" {
   vpc_id     = aws_vpc.prod.id
   cidr_block = "10.11.1.0/24"
+  availability_zone = "us-east-1a"
   tags = {
     Name = "Subnet-Prod-Private"
   }
