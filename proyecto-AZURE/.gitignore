@@ -1,0 +1,44 @@
+# ==========================================================
+# Terraform (Ignorar el estado y los plugins)
+# ==========================================================
+# Archivos de estado locales, ¡CONTIENEN SECRETOS!
+*.tfstate
+*.tfstate.backup
+
+# Directorio de plugins y módulos
+.terraform/
+
+# Logs de crash
+crash.log
+
+# Archivos de plan (pueden contener valores sensibles)
+*.tfplan
+
+# Archivos de variables locales que no deben ser compartidos
+*.tfvars
+*.tfvars.json
+
+# =Example files
+*.example
+
+
+# ==========================================================
+# Archivos de Secretos y Llaves
+# ==========================================================
+# Llaves SSH (públicas o privadas)
+*.pem
+*.pub
+
+# Llaves de Cuentas de Servicio (GCP o Azure)
+*.json
+
+
+# ==========================================================
+# Archivos de Sistema Operativo (Opcional, pero buena práctica)
+# ==========================================================
+# Mac
+.DS_Store
+.AppleDouble
+
+# Windows
+Thumbs.db
