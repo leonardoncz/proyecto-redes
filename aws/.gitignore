@@ -6,3 +6,6 @@
 # Ignorar llaves (aunque no deberían estar aquí)
 *.json
 *.pem
+
+#Ignorar variables secretas
+*.tfvars

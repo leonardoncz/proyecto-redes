@@ -15,6 +15,5 @@ variable "azure_vnet_cidr" {
 variable "vpn_shared_key" {
   description = "La clave secreta acordada por ambos equipos"
   type        = string
-  default     = "ProyectoRedes_2025_Secreto"
   sensitive   = true # Oculta la clave en la salida de Terraform
 }

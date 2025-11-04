@@ -246,7 +246,7 @@ resource "azurerm_virtual_network_gateway_connection" "azure_a_aws" {
 
   # !! IMPORTANTE !!
   # Esta clave debe ser IDÉNTICA a la que pusiste en 'aws_vpn_connection'
-  shared_key = "ProyectoRedes_2025_Secreto"
+  shared_key = var.vpn_shared_key
 }
 
 # 1️⃣9️⃣ Tabla de Rutas (Para enseñar a las VMs cómo llegar a AWS)
