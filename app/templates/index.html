@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sistema de Nómina - GlobalTalent</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f0f2f5; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #1a73e8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background-color: #f8f9fa; }
+        .error { color: red; background: #ffe6e6; padding: 10px; border-radius: 4px; }
+        .info { color: #5f6368; font-size: 0.9em; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>💰 GlobalTalent: Portal de Nómina</h1>
+        
+        {% if error %}
+            <div class="error">
+                <strong>Error de Conexión a Azure:</strong><br>
+                {{ error }}
+            </div>
+        {% else %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Puesto</th>
+                        <th>Vacaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ row[0] }}</td> 
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                        <td>{{ row[3] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        <div class="info">
+            Servido desde AWS ({{ server_ip }}) <br>
+            Conectado a Azure PostgreSQL via VPN S2S
+        </div>
+    </div>
+</body>
+</html>
