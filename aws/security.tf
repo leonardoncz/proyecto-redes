@@ -9,10 +9,7 @@ resource "aws_security_group" "sg_web" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["179.6.17.185/32"]
-    #CASA
-
-    #cidr_blocks = ["132.191.2.138/32"]
+    #cidr_blocks = ["0.0.0.0/0"] #permitimos cualquier ip, práctica no recomendada pero por cuestiones académicas será así
   }
 
   # Regla 2: Permitir HTTP (Puerto 80)
