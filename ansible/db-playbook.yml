@@ -1,0 +1,83 @@
+---
+- name: Configurar BD PostgreSQL en Azure
+  hosts: azure_db
+  become: yes  # Ejecutar todo como root (sudo)
+  vars:
+    db_name: "nomina_db"
+    db_user: "app_user"
+    # En un entorno real, esto iría en un Vault cifrado
+    db_password: "TuPasswordSeguro123!"
+    # La red de AWS que tiene permiso para entrar (VPC-Hub)
+    aws_subnet_cidr: "10.10.0.0/16" 
+
+  tasks:
+    - name: 1. Actualizar caché de apt e instalar PostgreSQL
+      apt:
+        name: 
+          - postgresql
+          - postgresql-contrib
+          - python3-psycopg2 # Necesario para que Ansible maneje Postgres
+        state: present
+        update_cache: yes
+
+    - name: 2. Configurar Postgres para escuchar en TODAS las interfaces
+      # Por defecto solo escucha en localhost. Necesitamos que escuche en la VPN.
+      lineinfile:
+        path: "/etc/postgresql/14/main/postgresql.conf" # Nota: La versión (14) puede variar según tu Ubuntu
+        regexp: "^#?listen_addresses"
+        line: "listen_addresses = '*'"
+      notify: Reiniciar Postgres
+
+    - name: 3. Configurar pg_hba.conf para aceptar conexiones desde AWS (VPN)
+      # Esto es el "Firewall de la Base de Datos"
+      postgresql_pg_hba:
+        dest: "/etc/postgresql/14/main/pg_hba.conf" 
+        contype: host
+        users: all
+        source: "{{ aws_subnet_cidr }}" # ¡Solo acepta tráfico de nuestra VPC de AWS!
+        databases: all
+        method: md5 # Usa contraseña cifrada
+      notify: Reiniciar Postgres
+
+    - name: 4. Asegurar que el servicio esté corriendo
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    # --- Tareas de SQL (Creación de datos) ---
+
+    - name: 5. Crear la base de datos 'nomina_db'
+      postgresql_db:
+        name: "{{ db_name }}"
+
+    - name: 6. Crear usuario de aplicación con contraseña
+      postgresql_user:
+        db: "{{ db_name }}"
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        priv: "ALL"
+
+    - name: 7. Crear tabla de Empleados e insertar datos iniciales
+      become_user: postgres # Ejecutar como el usuario 'postgres' del sistema
+      postgresql_query:
+        db: "{{ db_name }}"
+        query: |
+          CREATE TABLE IF NOT EXISTS empleados (
+              id SERIAL PRIMARY KEY,
+              nombre VARCHAR(100),
+              puesto VARCHAR(100),
+              vacaciones INT
+          );
+          INSERT INTO empleados (nombre, puesto, vacaciones) VALUES 
+          ('Juan Perez', 'Ingeniero DevOps', 15),
+          ('Maria Garcia', 'Gerente HR', 22),
+          ('Carlos Lopez', 'Analista Financiero', 10)
+          ON CONFLICT DO NOTHING;
+
+  # Handlers: Solo se ejecutan si una tarea notifica un cambio
+  handlers:
+    - name: Reiniciar Postgres
+      service:
+        name: postgresql
+        state: restarted
