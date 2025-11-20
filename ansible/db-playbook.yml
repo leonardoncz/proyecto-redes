@@ -17,6 +17,14 @@
       ansible.builtin.raw: while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 5; done
       changed_when: false
 
+    - name: FORZAR LIBERACIÓN DE BLOQUEOS APT
+      ansible.builtin.shell: |
+        # Borramos tres archivos de bloqueo principales
+        sudo rm -f /var/lib/dpkg/lock-frontend
+        sudo rm -f /var/lib/dpkg/lock
+        sudo rm -f /var/cache/apt/archives/lock
+      ignore_errors: true # Permite que el playbook continúe si el archivo no existe
+
     - name: 1. Actualizar caché de apt e instalar PostgreSQL
       apt:
         name: 
