@@ -35,15 +35,14 @@
         update_cache: yes
 
     - name: 1.1. Obtener la versión de PostgreSQL instalada
-      ansible.builtin.shell: 
-        cmd: dpkg -l | grep postgresql-client | grep -oP '(\d+)\s+all' | awk '{print $1}' | head -1
+      ansible.builtin.shell: ls -1 /etc/postgresql/ | sort -V | tail -n 1
       register: pg_version_result
       # Esto debería devolver un num. de version
 
     - name: 1.2. Registrar la ruta de configuración dinámica
       ansible.builtin.set_fact:
         # Esto construye la ruta completa
-        postgres_conf_path: "/etc/postgresql/{{ pg_version_result.stdout }}/main"
+        postgres_conf_path: "/etc/postgresql/{{ pg_version_result.stdout | trim}}/main"
 
     - name: 1.3. Validar si el directorio existe
       ansible.builtin.stat:
