@@ -113,7 +113,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   name                  = "vm-webserver"
   resource_group_name   = azurerm_resource_group.main.name
   location              = azurerm_resource_group.main.location
-  size                  = "Standard_B1ls"
+  size                  = "Standard_B2s"
   admin_username        = "azureuser"
   network_interface_ids = [azurerm_network_interface.vm.id]
 
@@ -156,7 +156,7 @@ resource "azurerm_linux_virtual_machine" "vm_privada" {
   name                  = "vm-privada"
   resource_group_name   = azurerm_resource_group.main.name
   location              = azurerm_resource_group.main.location
-  size                  = "Standard_B1ls"
+  size                  = "Standard_B2s"
   admin_username        = "azureuser"
   network_interface_ids = [azurerm_network_interface.vm_privada.id]
 
