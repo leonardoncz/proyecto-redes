@@ -91,7 +91,7 @@ jobs:
 
     # Paso de precaución: Esperar a que las VMs terminen de arrancar
     - name: Wait for SSH to be ready
-      run: sleep 60 # Espera 60 seg
+      run: sleep 120 # Espera 120 seg
 
     # 6. Generar Inventario de Ansible Dinámico
     - name: Create Ansible Inventory
