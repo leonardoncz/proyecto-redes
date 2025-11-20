@@ -16,6 +16,8 @@ jobs:
     # 2. Instalar Herramientas
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
+      with: 
+        terraform_wrapper: false
     
     - name: Setup Python (para Ansible)
       uses: actions/setup-python@v4
