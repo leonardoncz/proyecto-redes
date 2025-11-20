@@ -54,9 +54,9 @@ jobs:
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       run: |
-        cd azure
+        cd proyecto-AZURE
         terraform init
-        # ¡AQUÍ OCURRE LA MAGIA! Le pasamos la IP que acabamos de crear en AWS
+        # Le pasamos la IP que acabamos de crear en AWS
         terraform apply -auto-approve \
           -var="aws_vpn_ip_address=${{ steps.aws.outputs.VPN_IP_AWS }}" \
           -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
@@ -64,7 +64,7 @@ jobs:
         # CAPTURAR OUTPUTS PARA ANSIBLE
         echo "VPN_IP_AZURE=$(terraform output -raw vpn_gateway_public_ip)" >> $GITHUB_OUTPUT
         echo "DB_PRIVATE_IP=$(terraform output -raw db_private_ip)" >> $GITHUB_OUTPUT
-        echo "BASTION_IP=$(terraform output -raw vm_public_ip)" >> $GITHUB_OUTPUT
+        echo "BASTION_IP=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
 
     # 5. Configurar Llaves SSH (Temporales en el Robot)
     - name: Setup SSH Keys
