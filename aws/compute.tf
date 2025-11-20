@@ -144,13 +144,6 @@ HTML_EOF
   }
 }
 
-# (Opcional) Muestra la IP pública de la VM al final
-output "web_server_ip" {
-  value = aws_instance.web_server.public_ip
-}
-
-
-
 # ------------------------------------------------
 # VM de Prueba (en Prod)
 # ------------------------------------------------
@@ -173,10 +166,4 @@ resource "aws_instance" "test_vm_prod" {
   tags = {
     Name = "TestVM-Prod"
   }
-}
-
-# --- Añade esta nueva "salida" al final ---
-output "test_vm_prod_private_ip" {
-  description = "IP Privada de la VM de prueba en Prod"
-  value       = aws_instance.test_vm_prod.private_ip
 }
