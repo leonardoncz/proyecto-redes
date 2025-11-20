@@ -12,13 +12,13 @@ provider "azurerm" {
   features {}
 }
 
-# 1️⃣ Grupo de recursos
+#1 Grupo de recursos
 resource "azurerm_resource_group" "main" {
   name     = "rg-proyecto-azure"
   location = "East US 2"
 }
 
-# 2️⃣ Red virtual
+#2 Red virtual
 resource "azurerm_virtual_network" "main" {
   name                = "vnet-principal"
   address_space       = ["10.0.0.0/16"]
@@ -26,7 +26,7 @@ resource "azurerm_virtual_network" "main" {
   resource_group_name = azurerm_resource_group.main.name
 }
 
-# 3️⃣ Subred pública
+#3 Subred pública
 resource "azurerm_subnet" "publica" {
   name                 = "subnet-publica"
   resource_group_name  = azurerm_resource_group.main.name
@@ -34,7 +34,7 @@ resource "azurerm_subnet" "publica" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-# 4️⃣ Subred privada
+#4 Subred privada
 resource "azurerm_subnet" "privada" {
   name                 = "subnet-privada"
   resource_group_name  = azurerm_resource_group.main.name
@@ -42,14 +42,14 @@ resource "azurerm_subnet" "privada" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-# 5️⃣ NSG para la subred pública
+#5 NSG para la subred pública
 resource "azurerm_network_security_group" "nsg_public" {
   name                = "nsg-public"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 }
 
-# 6️⃣ Regla SSH para el NSG
+#6 Regla SSH para el NSG
 resource "azurerm_network_security_rule" "ssh" {
   name                        = "Allow-SSH"
   priority                    = 100
@@ -64,7 +64,7 @@ resource "azurerm_network_security_rule" "ssh" {
   network_security_group_name = azurerm_network_security_group.nsg_public.name
 }
 
-# 7️⃣ Regla HTTP para el NSG
+#7 Regla HTTP para el NSG
 resource "azurerm_network_security_rule" "http" {
   name                        = "Allow-HTTP"
   priority                    = 110
@@ -79,13 +79,13 @@ resource "azurerm_network_security_rule" "http" {
   network_security_group_name = azurerm_network_security_group.nsg_public.name
 }
 
-# 8️⃣ Asociar NSG a subred pública
+#8 Asociar NSG a subred pública
 resource "azurerm_subnet_network_security_group_association" "public" {
   subnet_id                 = azurerm_subnet.publica.id
   network_security_group_id = azurerm_network_security_group.nsg_public.id
 }
 
-# 9️⃣ IP pública para la VM pública
+#9 IP pública para la VM pública
 resource "azurerm_public_ip" "vm" {
   name                = "ip-publica-vm"
   location            = azurerm_resource_group.main.location
@@ -94,7 +94,7 @@ resource "azurerm_public_ip" "vm" {
   sku                 = "Standard"
 }
 
-# 🔟 Interfaz de red para VM pública
+#10 Interfaz de red para VM pública
 resource "azurerm_network_interface" "vm" {
   name                = "nic-vm"
   location            = azurerm_resource_group.main.location
@@ -108,7 +108,7 @@ resource "azurerm_network_interface" "vm" {
   }
 }
 
-# 1️⃣1️⃣ VM pública
+#11 VM pública
 resource "azurerm_linux_virtual_machine" "vm" {
   name                  = "vm-webserver"
   resource_group_name   = azurerm_resource_group.main.name
@@ -138,7 +138,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 }
 
-# 1️⃣2️⃣ Interfaz de red para VM privada
+#12 Interfaz de red para VM privada
 resource "azurerm_network_interface" "vm_privada" {
   name                = "nic-vm-privada"
   location            = azurerm_resource_group.main.location
@@ -151,7 +151,7 @@ resource "azurerm_network_interface" "vm_privada" {
   }
 }
 
-# 1️⃣3️⃣ VM privada
+#13 VM privada
 resource "azurerm_linux_virtual_machine" "vm_privada" {
   name                  = "vm-privada"
   resource_group_name   = azurerm_resource_group.main.name
@@ -181,19 +181,17 @@ resource "azurerm_linux_virtual_machine" "vm_privada" {
   }
 }
 
-# ==========================================================
-# 🛑 INICIO: RECURSOS PARA LA VPN S2S
-# ==========================================================
+#INICIO: RECURSOS PARA LA VPN S2S
 
-# 1️⃣4️⃣ Subred OBLIGATORIA para el Gateway
+#14 Subred OBLIGATORIA para el Gateway
 resource "azurerm_subnet" "gateway" {
-  name                 = "GatewaySubnet" # El nombre DEBE ser este
+  name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.3.0/24"] # Un nuevo rango
 }
 
-# 1️⃣5️⃣ IP Pública para el VPN Gateway
+#15 IP Pública para el VPN Gateway
 resource "azurerm_public_ip" "vpn_gateway" {
   name                = "pip-vpn-gateway"
   location            = azurerm_resource_group.main.location
@@ -202,7 +200,7 @@ resource "azurerm_public_ip" "vpn_gateway" {
   sku                 = "Standard"
 }
 
-# 1️⃣6️⃣ El Virtual Network Gateway (¡El que gasta créditos!)
+#16 El Virtual Network Gateway
 resource "azurerm_virtual_network_gateway" "main" {
   name                = "vng-azure-a-aws"
   location            = azurerm_resource_group.main.location
@@ -220,21 +218,21 @@ resource "azurerm_virtual_network_gateway" "main" {
   }
 }
 
-# 1️⃣7️⃣ El "Puntero" a AWS (Gateway de Red Local)
+#17 El "Puntero" a AWS (Gateway de Red Local)
 resource "azurerm_local_network_gateway" "aws" {
   name                = "lng-hacia-aws"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 
-  # !! MARCADOR DE POSICIÓN 1 !!
-  # Aquí va la IP PÚBLICA del pilar de AWS (TUNEL 1)
-  gateway_address = "34.238.209.136"
+  # MARCADOR DE POSICIÓN 1
+  # IP PÚBLICA del pilar de AWS (TUNEL 1)
+  gateway_address = var.aws_vpn_ip_address
 
   # Las redes que queremos alcanzar en AWS (VPC-Hub y VPC-Prod)
   address_space = ["10.10.0.0/16", "10.11.0.0/16"]
 }
 
-# 1️⃣8️⃣ La Conexión S2S (El "apretón de manos")
+#18 La Conexión S2S
 resource "azurerm_virtual_network_gateway_connection" "azure_a_aws" {
   name                       = "conn-azure-aws"
   location                   = azurerm_resource_group.main.location
@@ -244,12 +242,10 @@ resource "azurerm_virtual_network_gateway_connection" "azure_a_aws" {
   virtual_network_gateway_id = azurerm_virtual_network_gateway.main.id
   local_network_gateway_id   = azurerm_local_network_gateway.aws.id
 
-  # !! IMPORTANTE !!
-  # Esta clave debe ser IDÉNTICA a la que pusiste en 'aws_vpn_connection'
   shared_key = var.vpn_shared_key
 }
 
-# 1️⃣9️⃣ Tabla de Rutas (Para enseñar a las VMs cómo llegar a AWS)
+#19 Tabla de Rutas (enseñar a las VMs cómo llegar a AWS)
 resource "azurerm_route_table" "to_aws" {
   name                = "rt-hacia-aws"
   location            = azurerm_resource_group.main.location
@@ -270,7 +266,7 @@ resource "azurerm_route_table" "to_aws" {
   }
 }
 
-# 2️⃣0️⃣ Asociar la Tabla de Rutas a las subredes
+#20 Asociar la Tabla de Rutas a las subredes
 resource "azurerm_subnet_route_table_association" "publica_rt" {
   subnet_id      = azurerm_subnet.publica.id
   route_table_id = azurerm_route_table.to_aws.id
@@ -280,7 +276,3 @@ resource "azurerm_subnet_route_table_association" "privada_rt" {
   subnet_id      = azurerm_subnet.privada.id
   route_table_id = azurerm_route_table.to_aws.id
 }
-
-# ==========================================================
-# 🛑 FIN: RECURSOS VPN S2S
-# ==========================================================
