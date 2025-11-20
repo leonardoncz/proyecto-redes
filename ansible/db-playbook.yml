@@ -11,6 +11,12 @@
     aws_subnet_cidr: "10.10.0.0/16" 
 
   tasks:
+
+    - name: Esperar que el sistema de paquetes esté libre, ya que APT solo acepta un proceso a la vez
+      # Espera que el puerto 22 esté abierto (conexión) y luego espera a que el archivo de bloqueo de apt se libere.
+      ansible.builtin.raw: while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 5; done
+      changed_when: false
+
     - name: 1. Actualizar caché de apt e instalar PostgreSQL
       apt:
         name: 
@@ -23,7 +29,7 @@
     - name: 2. Configurar Postgres para escuchar en TODAS las interfaces
       # Por defecto solo escucha en localhost. Necesitamos que escuche en la VPN.
       lineinfile:
-        path: "/etc/postgresql/14/main/postgresql.conf" # Nota: La versión (14) puede variar según tu Ubuntu
+        path: "/etc/postgresql/14/main/postgresql.conf" #La versión puede variar según el Ubuntu
         regexp: "^#?listen_addresses"
         line: "listen_addresses = '*'"
       notify: Reiniciar Postgres
@@ -34,9 +40,9 @@
         dest: "/etc/postgresql/14/main/pg_hba.conf" 
         contype: host
         users: all
-        source: "{{ aws_subnet_cidr }}" # ¡Solo acepta tráfico de nuestra VPC de AWS!
+        source: "{{ aws_subnet_cidr }}" # Solo acepta tráfico de VPC de AWS
         databases: all
-        method: md5 # Usa contraseña cifrada
+        method: md5 # usar contraseña cifrada
       notify: Reiniciar Postgres
 
     - name: 4. Asegurar que el servicio esté corriendo
@@ -75,7 +81,7 @@
           ('Carlos Lopez', 'Analista Financiero', 10)
           ON CONFLICT DO NOTHING;
 
-  # Handlers: Solo se ejecutan si una tarea notifica un cambio
+  # Handlers, solo se ejecutarán si una tarea notifica un cambio
   handlers:
     - name: Reiniciar Postgres
       service:
