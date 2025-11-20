@@ -14,7 +14,7 @@ provider "azurerm" {
 
 #1 Grupo de recursos
 resource "azurerm_resource_group" "main" {
-  name     = "rg-proyecto-azure"
+  name     = "rg-proyectoazure"
   location = "East US 2"
 }
 
