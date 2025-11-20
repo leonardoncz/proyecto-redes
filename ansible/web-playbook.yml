@@ -1,0 +1,110 @@
+---
+- name: Configurar Servidor Web Flask en AWS (Frontend)
+  hosts: aws_web
+  become: yes
+  vars:
+    # Es la IP privada de la VM de Azure
+    db_host: "{{ azure_private_ip }}" #irá al pipeline
+
+  tasks:
+    - name: 1. Instalar paquetes de sistema (Nginx, Python, Pip)
+      yum: # Usamos yum porque Amazon Linux 2 es basado en RedHat/CentOS
+        name:
+          - nginx
+          - python3
+          - python3-pip
+          - git
+          - postgresql-devel # Necesario para compilar psycopg2
+          - gcc # Necesario para compilar
+          - python3-devel # Necesario para compilar
+        state: present
+
+    - name: 2. Instalar librerías de Python
+      pip:
+        name:
+          - flask
+          - gunicorn
+          - psycopg2-binary # El driver de Postgres para Python
+
+    - name: 3. Crear directorio de la aplicación
+      file:
+        path: /var/www/app
+        state: directory
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
+
+    - name: 4. Copiar código de la aplicación (App + Templates)
+      # Ansible busca en tu máquina local (../app) y lo sube a la VM
+      copy:
+        src: "../app/" 
+        dest: "/var/www/app/"
+        owner: ec2-user
+        group: ec2-user
+
+    - name: 5. Configurar servicio Systemd para Gunicorn (Tu App)
+      # Esto convierte tu script de Python en un servicio de fondo
+      copy:
+        dest: /etc/systemd/system/mi_app.service
+        content: |
+          [Unit]
+          Description=Gunicorn instance to serve my app
+          After=network.target
+
+          [Service]
+          User=ec2-user
+          Group=nginx
+          WorkingDirectory=/var/www/app
+          # INYECCIÓN DE VARIABLES DE ENTORNO (SECRETS)
+          Environment="DB_HOST={{ db_host }}"
+          Environment="DB_NAME=nomina_db"
+          Environment="DB_USER=app_user"
+          Environment="DB_PASS=TuPasswordSeguro123!"
+          # Comando de arranque
+          ExecStart=/usr/local/bin/gunicorn --workers 3 --bind unix:app.sock -m 007 app:app
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Reiniciar App
+
+    - name: 6. Configurar Nginx como Proxy Inverso
+      # Redirige el tráfico del puerto 80 al socket de Gunicorn
+      copy:
+        dest: /etc/nginx/conf.d/mi_app.conf
+        content: |
+          server {
+              listen 80;
+              server_name _;
+
+              location / {
+                  include proxy_params;
+                  proxy_pass http://unix:/var/www/app/app.sock;
+              }
+          }
+      notify: Reiniciar Nginx
+
+    - name: 7. Asegurar permisos de Nginx
+      user:
+        name: nginx
+        groups: ec2-user
+        append: yes
+
+    - name: 8. Iniciar Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Reiniciar App
+      systemd:
+        name: mi_app
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+
+    - name: Reiniciar Nginx
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
