@@ -25,6 +25,21 @@
         sudo rm -f /var/cache/apt/archives/lock
       ignore_errors: true # Permite que el playbook continúe si el archivo no existe
 
+  # Tarea para encontrar la ruta de configuración
+    - name: 0. Obtener la ruta de configuración de Postgres instalada
+      ansible.builtin.find:
+        paths: /etc/postgresql/
+        patterns: "main"
+        file_type: directory
+        # Busca hasta 2 niveles de profundidad (ej. /etc/postgresql/14/main)
+        depth: 2 
+      register: postgres_conf_dir_result
+
+    - name: 0.1. Validar que se encontró la carpeta de configuración
+      ansible.builtin.fail:
+        msg: "No se encontró el directorio de configuración 'main' de PostgreSQL. ¿Está instalado?"
+      when: postgres_conf_dir_result.files | length == 0
+
     - name: 1. Actualizar caché de apt e instalar PostgreSQL
       apt:
         name: 
@@ -37,7 +52,7 @@
     - name: 2. Configurar Postgres para escuchar en TODAS las interfaces
       # Por defecto solo escucha en localhost. Necesitamos que escuche en la VPN.
       lineinfile:
-        path: "/etc/postgresql/14/main/postgresql.conf" #La versión puede variar según el Ubuntu
+        path: "{{ postgres_conf_dir_result.files[0].path }}/postgresql.conf" #La versión puede variar según el Ubuntu
         regexp: "^#?listen_addresses"
         line: "listen_addresses = '*'"
       notify: Reiniciar Postgres
@@ -45,7 +60,7 @@
     - name: 3. Configurar pg_hba.conf para aceptar conexiones desde AWS (VPN)
       # Esto es el "Firewall de la Base de Datos"
       postgresql_pg_hba:
-        dest: "/etc/postgresql/14/main/pg_hba.conf" 
+        dest: "{{ postgres_conf_dir_result.files[0].path }}/pg_hba.conf" 
         contype: host
         users: all
         source: "{{ aws_subnet_cidr }}" # Solo acepta tráfico de VPC de AWS
