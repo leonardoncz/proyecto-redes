@@ -1,3 +1,8 @@
+output "db_private_ip" {
+  value       = azurerm_linux_virtual_machine.vm_privada.private_ip_address
+  description = "La IP privada de la VM de Base de Datos"
+}
+
 output "public_ip" {
   description = "IP pública de la máquina virtual"
   value       = azurerm_public_ip.vm.ip_address
