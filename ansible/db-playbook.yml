@@ -34,25 +34,31 @@
         state: present
         update_cache: yes
 
-  # Tarea para encontrar la ruta de configuración
-    - name: 0. Obtener la ruta de configuración de Postgres instalada
-      ansible.builtin.find:
-        paths: /etc/postgresql/
-        patterns: "main"
-        file_type: directory
-        # Busca hasta 2 niveles de profundidad (ej. /etc/postgresql/14/main)
-        depth: 2 
-      register: postgres_conf_dir_result
+    - name: 1.1. Obtener la versión de PostgreSQL instalada
+      ansible.builtin.shell: 
+        cmd: dpkg -l | grep postgresql-client | grep -oP '(\d+)\s+all' | awk '{print $1}' | head -1
+      register: pg_version_result
+      # Esto debería devolver un num. de version
 
-    - name: 0.1. Validar que se encontró la carpeta de configuración
+    - name: 1.2. Registrar la ruta de configuración dinámica
+      ansible.builtin.set_fact:
+        # Esto construye la ruta completa
+        postgres_conf_path: "/etc/postgresql/{{ pg_version_result.stdout }}/main"
+
+    - name: 1.3. Validar si el directorio existe
+      ansible.builtin.stat:
+        path: "{{ postgres_conf_path }}"
+      register: pg_path_stat
+      
+    - name: 1.4. FALLAR si no se encuentra la ruta de configuración
       ansible.builtin.fail:
-        msg: "No se encontró el directorio de configuración 'main' de PostgreSQL. ¿Está instalado?"
-      when: postgres_conf_dir_result.files | length == 0
+        msg: "ERROR FATAL: La versión de PostgreSQL {{ pg_version_result.stdout }} fue instalada, pero no se encontró el directorio de configuración: {{ postgres_conf_path }}"
+      when: not pg_path_stat.stat.isdir is defined or not pg_path_stat.stat.isdir
 
     - name: 2. Configurar Postgres para escuchar en TODAS las interfaces
       # Por defecto solo escucha en localhost. Necesitamos que escuche en la VPN.
       lineinfile:
-        path: "{{ postgres_conf_dir_result.files[0].path }}/postgresql.conf" #La versión puede variar según el Ubuntu
+        path: "{{ postgres_conf_path }}/postgresql.conf" #La versión puede variar según el Ubuntu
         regexp: "^#?listen_addresses"
         line: "listen_addresses = '*'"
       notify: Reiniciar Postgres
@@ -60,7 +66,7 @@
     - name: 3. Configurar pg_hba.conf para aceptar conexiones desde AWS (VPN)
       # Esto es el "Firewall de la Base de Datos"
       postgresql_pg_hba:
-        dest: "{{ postgres_conf_dir_result.files[0].path }}/pg_hba.conf" 
+        dest: "{{ postgres_conf_path }}/pg_hba.conf"
         contype: host
         users: all
         source: "{{ aws_subnet_cidr }}" # Solo acepta tráfico de VPC de AWS
