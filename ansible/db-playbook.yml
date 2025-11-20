@@ -25,6 +25,15 @@
         sudo rm -f /var/cache/apt/archives/lock
       ignore_errors: true # Permite que el playbook continúe si el archivo no existe
 
+    - name: 1. Actualizar caché de apt e instalar PostgreSQL
+      apt:
+        name: 
+          - postgresql
+          - postgresql-contrib
+          - python3-psycopg2 # Necesario para que Ansible maneje Postgres
+        state: present
+        update_cache: yes
+
   # Tarea para encontrar la ruta de configuración
     - name: 0. Obtener la ruta de configuración de Postgres instalada
       ansible.builtin.find:
@@ -39,15 +48,6 @@
       ansible.builtin.fail:
         msg: "No se encontró el directorio de configuración 'main' de PostgreSQL. ¿Está instalado?"
       when: postgres_conf_dir_result.files | length == 0
-
-    - name: 1. Actualizar caché de apt e instalar PostgreSQL
-      apt:
-        name: 
-          - postgresql
-          - postgresql-contrib
-          - python3-psycopg2 # Necesario para que Ansible maneje Postgres
-        state: present
-        update_cache: yes
 
     - name: 2. Configurar Postgres para escuchar en TODAS las interfaces
       # Por defecto solo escucha en localhost. Necesitamos que escuche en la VPN.
