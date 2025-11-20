@@ -1,4 +1,4 @@
-name: 'Despliegue Maestro: Infra + App'
+name: 'Despliegue total de la Infrastructura'
 
 on:
   workflow_dispatch: # Botón manual para iniciar
