@@ -24,7 +24,8 @@ resource "aws_vpc" "prod" {
 resource "aws_subnet" "hub_public" {
   vpc_id                  = aws_vpc.hub.id
   cidr_block              = "10.10.1.0/24"
-  map_public_ip_on_launch = true # Importante: da IPs públicas a las VMs
+  map_public_ip_on_launch = true # Importante ya que da IPs públicas a las VMs
+  availability_zone       = "us-east-1a"
   tags = {
     Name = "Subnet-Hub-Public"
   }
