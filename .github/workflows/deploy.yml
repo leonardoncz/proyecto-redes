@@ -73,6 +73,10 @@ jobs:
         chmod 600 ~/.ssh/aws_key.pem
         chmod 600 ~/.ssh/azure_key
 
+    # Paso de precaución: Esperar a que las VMs terminen de arrancar
+    - name: Wait for SSH to be ready
+      run: sleep 60 # Espera 60 seg
+
     # 6. Generar Inventario de Ansible Dinámico
     - name: Create Ansible Inventory
       run: |
@@ -92,7 +96,7 @@ jobs:
       env:
         ANSIBLE_HOST_KEY_CHECKING: 'False'
       run: |
-        ansible-playbook -i ansible/inventory.ini ansible/db-setup.yml \
+        ansible-playbook -i ansible/inventory.ini ansible/db-playbook.yml \
           --extra-vars "db_password=${{ secrets.DB_PASSWORD }}"
 
     # 8. Ejecutar Ansible: Configurar Web App (AWS)
@@ -100,7 +104,7 @@ jobs:
       env:
         ANSIBLE_HOST_KEY_CHECKING: 'False'
       run: |
-        ansible-playbook -i ansible/inventory.ini ansible/web-setup.yml \
+        ansible-playbook -i ansible/inventory.ini ansible/web-playbook.yml \
           --extra-vars "azure_private_ip=${{ steps.azure.outputs.DB_PRIVATE_IP }} db_password=${{ secrets.DB_PASSWORD }}"
 
     # 9. Actualizar AWS con la IP real de Azure (Cerrar el círculo)
