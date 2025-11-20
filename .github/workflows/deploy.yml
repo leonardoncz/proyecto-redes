@@ -1,0 +1,116 @@
+name: 'Despliegue Maestro: Infra + App'
+
+on:
+  workflow_dispatch: # Botón manual para iniciar
+
+jobs:
+  deploy-infra-and-app:
+    name: 'Construir y Configurar'
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 1. Descargar Código
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 2. Instalar Herramientas
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+    
+    - name: Setup Python (para Ansible)
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install Ansible
+      run: pip install ansible requests
+
+    # 3. Desplegar AWS (Pilar 1)
+    - name: Terraform Init & Apply (AWS)
+      id: aws
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        cd aws
+        terraform init
+        # Nota: Usamos una variable para la IP de Azure "placeholder" inicial 
+        # o esperamos que Azure se actualice en una segunda vuelta. 
+        # Para este flujo directo, asumimos despliegue inicial.
+        terraform apply -auto-approve -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
+        
+        # CAPTURAR OUTPUTS PARA EL SIGUIENTE PASO
+        echo "WEB_PUBLIC_IP=$(terraform output -raw web_server_ip_publica)" >> $GITHUB_OUTPUT
+        echo "VPN_IP_AWS=$(terraform output -raw vpn_tunnel1_address)" >> $GITHUB_OUTPUT
+
+    # 4. Desplegar Azure (Pilar 2 + Conexión)
+    - name: Terraform Init & Apply (Azure)
+      id: azure
+      env:
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      run: |
+        cd azure
+        terraform init
+        # ¡AQUÍ OCURRE LA MAGIA! Le pasamos la IP que acabamos de crear en AWS
+        terraform apply -auto-approve \
+          -var="aws_vpn_ip_address=${{ steps.aws.outputs.VPN_IP_AWS }}" \
+          -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
+        
+        # CAPTURAR OUTPUTS PARA ANSIBLE
+        echo "VPN_IP_AZURE=$(terraform output -raw vpn_gateway_public_ip)" >> $GITHUB_OUTPUT
+        echo "DB_PRIVATE_IP=$(terraform output -raw db_private_ip)" >> $GITHUB_OUTPUT
+        echo "BASTION_IP=$(terraform output -raw vm_public_ip)" >> $GITHUB_OUTPUT
+
+    # 5. Configurar Llaves SSH (Temporales en el Robot)
+    - name: Setup SSH Keys
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_KEY_AWS }}" > ~/.ssh/aws_key.pem
+        echo "${{ secrets.SSH_KEY_AZURE }}" > ~/.ssh/azure_key
+        chmod 600 ~/.ssh/aws_key.pem
+        chmod 600 ~/.ssh/azure_key
+
+    # 6. Generar Inventario de Ansible Dinámico
+    - name: Create Ansible Inventory
+      run: |
+        cat <<EOF > ansible/inventory.ini
+        [aws_web]
+        ${{ steps.aws.outputs.WEB_PUBLIC_IP }} ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/aws_key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+        [azure_db]
+        ${{ steps.azure.outputs.DB_PRIVATE_IP }} ansible_user=azureuser ansible_ssh_private_key_file=~/.ssh/azure_key ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyCommand="ssh -W %h:%p -q azureuser@${{ steps.azure.outputs.BASTION_IP }} -i ~/.ssh/azure_key -o StrictHostKeyChecking=no"'
+        EOF
+        
+        echo "--- Inventario Generado ---"
+        cat ansible/inventory.ini
+
+    # 7. Ejecutar Ansible: Configurar Base de Datos (Azure)
+    - name: Run Playbook (Database)
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: 'False'
+      run: |
+        ansible-playbook -i ansible/inventory.ini ansible/db-setup.yml \
+          --extra-vars "db_password=${{ secrets.DB_PASSWORD }}"
+
+    # 8. Ejecutar Ansible: Configurar Web App (AWS)
+    - name: Run Playbook (Web App)
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: 'False'
+      run: |
+        ansible-playbook -i ansible/inventory.ini ansible/web-setup.yml \
+          --extra-vars "azure_private_ip=${{ steps.azure.outputs.DB_PRIVATE_IP }} db_password=${{ secrets.DB_PASSWORD }}"
+
+    # 9. Actualizar AWS con la IP real de Azure (Cerrar el círculo)
+    - name: Update AWS with Azure IP
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        cd aws
+        # Aquí le pasamos la IP que capturamos del paso de Azure
+        terraform apply -auto-approve \
+          -var="azure_vpn_public_ip=${{ steps.azure.outputs.VPN_IP_AZURE }}" \
+          -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
