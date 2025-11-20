@@ -40,7 +40,7 @@ jobs:
         terraform apply -auto-approve -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
         
         # CAPTURAR OUTPUTS PARA EL SIGUIENTE PASO
-        echo "WEB_PUBLIC_IP=$(terraform output -raw web_server_ip_publica)" >> $GITHUB_OUTPUT
+        echo "WEB_PUBLIC_IP=$(terraform output -raw web_server_ip)" >> $GITHUB_OUTPUT
         echo "VPN_IP_AWS=$(terraform output -raw vpn_tunnel1_address)" >> $GITHUB_OUTPUT
 
     # 4. Desplegar Azure (Pilar 2 + Conexión)
