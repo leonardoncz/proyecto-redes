@@ -43,6 +43,20 @@ jobs:
         echo "WEB_PUBLIC_IP=$(terraform output -raw web_server_ip)" >> $GITHUB_OUTPUT
         echo "VPN_IP_AWS=$(terraform output -raw vpn_tunnel1_address)" >> $GITHUB_OUTPUT
 
+    # Paso extra previo: Generar el archivo id_rsa.pub
+    - name: Generate Azure Public Key File
+      run: |
+        # 1. Crear un archivo temporal con la llave privada del Secreto
+        echo "${{ secrets.SSH_KEY_AZURE }}" > private_key_temp.pem
+        chmod 600 private_key_temp.pem
+        
+        # 2. Usamos ssh-keygen para extraer la parte Pública (-y)
+        # guardarla en la ruta (proyecto-AZURE/id_rsa.pub)
+        ssh-keygen -y -f private_key_temp.pem > proyecto-AZURE/id_rsa.pub
+        
+        # (Opcional) Verificar que se creó
+        ls -l proyecto-AZURE/id_rsa.pub
+
     # 4. Desplegar Azure (Pilar 2 + Conexión)
     - name: Terraform Init & Apply (Azure)
       id: azure
