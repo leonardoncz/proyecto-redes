@@ -1,0 +1,40 @@
+name: 'DESTRUIR TODO'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  destroy:
+    name: 'Destroy Infrastructure'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    # Destruir Azure
+    - name: Terraform Destroy (Azure)
+      env:
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      run: |
+        cd azure
+        terraform init
+        # Necesitamos pasar variables aunque vayamos a destruir
+        terraform destroy -auto-approve \
+          -var="aws_vpn_ip_address=1.1.1.1" \
+          -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
+
+    # Destruir AWS
+    - name: Terraform Destroy (AWS)
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        cd aws
+        terraform init
+        terraform destroy -auto-approve -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
