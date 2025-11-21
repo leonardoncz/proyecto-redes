@@ -27,7 +27,8 @@
 
     - name: 1. Actualizar caché de apt e instalar PostgreSQL
       apt:
-        name: 
+        name:
+          - acl #paquete necesario para gestionar permisos y evitar problemas entre usuarios root y postgres 
           - postgresql
           - postgresql-contrib
           - python3-psycopg2 # Necesario para que Ansible maneje Postgres

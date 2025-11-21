@@ -10,7 +10,7 @@ def get_connection():
         db_password = os.environ.get('DB_PASS', '1234')
 
         conn = psycopg2.connect(
-        #connect_timeout=5,
+        connect_timeout=5,
         user=db_user,
         password=db_password,
         host=db_host,
@@ -25,4 +25,5 @@ def get_connection():
         return rows, None # Retornar (datos, error)
     
     except OperationalError as error:
-        return(error)
+        print(f"Error de conexión: {error}")
+        return None, str(error)
