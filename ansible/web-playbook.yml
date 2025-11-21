@@ -43,13 +43,9 @@
       shell: "python3.8 -m ensurepip --upgrade"
       changed_when: false
 
-    - name: 2. Instalar librerías de Python
-      pip:
-        name:
-          - flask
-          - gunicorn
-          - psycopg2-binary # El driver de Postgres para Python
-        executable: pip3.8
+    - name: 2. Instalar librerías de Python (Modo directo)
+      # Usar módulo shell para invocar a pip a través de py
+      shell: "/usr/bin/python3.8 -m pip install flask gunicorn psycopg2-binary"
 
     - name: 3. Crear directorio de la aplicación
       file:
