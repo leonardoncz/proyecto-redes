@@ -123,7 +123,7 @@ jobs:
         ansible-playbook -i ansible/inventory.ini ansible/web-playbook.yml \
           --extra-vars "azure_private_ip=${{ steps.azure.outputs.DB_PRIVATE_IP }} db_password=${{ secrets.DB_PASSWORD }}"
 
-    # 9. Actualizar AWS con la IP real de Azure (Cerrar el círculo)
+    # 9. Actualizar AWS con la IP real de Azure
     - name: Update AWS with Azure IP
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

@@ -82,10 +82,14 @@
     # --- Tareas de SQL (Creación de datos) ---
 
     - name: 5. Crear la base de datos 'nomina_db'
+      become: yes
+      become_user: postgres
       postgresql_db:
         name: "{{ db_name }}"
 
     - name: 6. Crear usuario de aplicación con contraseña
+      become: yes
+      become_user: postgres
       postgresql_user:
         db: "{{ db_name }}"
         name: "{{ db_user }}"
@@ -93,7 +97,7 @@
         priv: "ALL"
 
     - name: 7. Crear tabla de Empleados e insertar datos iniciales
-      become_user: postgres # Ejecutar como el usuario 'postgres' del sistema
+      become_user: postgres # Ejecutar como el usuario postgres
       postgresql_query:
         db: "{{ db_name }}"
         query: |
