@@ -5,6 +5,9 @@ resource "aws_vpn_gateway" "vgw" {
   tags = {
     Name = "VGW-AWS-to-Azure"
   }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # 2. La "Tarjeta de Contacto" de Azure (Customer Gateway)
