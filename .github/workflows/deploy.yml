@@ -132,6 +132,14 @@ jobs:
       run: |
         cd aws
         # Aquí le pasamos la IP que capturamos del paso de Azure
+        # SE REALIZARAN DOS INTENTOS
         terraform apply -auto-approve \
           -var="azure_vpn_public_ip=${{ steps.azure.outputs.VPN_IP_AZURE }}" \
-          -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
+          -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}" || (
+          echo "Falló primer intento, probablemente Race condition AWS)."
+          sleep 420
+          echo "Reintentar"
+          terraform apply -auto-approve \
+              -var="azure_vpn_public_ip=${{ steps.azure.outputs.VPN_IP_AZURE }}" \
+              -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
+          
