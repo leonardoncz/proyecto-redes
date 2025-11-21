@@ -5,6 +5,7 @@
   vars:
     # Es la IP privada de la VM de Azure
     db_host: "{{ azure_private_ip }}" #irá al pipeline
+    
 
   tasks:
     - name: 1. Instalar paquetes de sistema (Nginx, Python, Pip)
@@ -59,7 +60,7 @@
           Environment="DB_HOST={{ db_host }}"
           Environment="DB_NAME=nomina_db"
           Environment="DB_USER=app_user"
-          Environment="DB_PASS=TuPasswordSeguro123!"
+          Environment="DB_PASS={{ db_password }}"
           # Comando de arranque
           ExecStart=/usr/local/bin/gunicorn --workers 3 --bind unix:app.sock -m 007 app:app
 
@@ -77,17 +78,21 @@
               server_name _;
 
               location / {
-                  include proxy_params;
+                  # CORRECCIÓN: proxy_params no existe en Amazon Linux, los definimos a mano:
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                   proxy_pass http://unix:/var/www/app/app.sock;
               }
           }
       notify: Reiniciar Nginx
 
     - name: 7. Asegurar permisos de Nginx
-      user:
-        name: nginx
-        groups: ec2-user
-        append: yes
+
+      file:
+        path: /var/www/app
+        mode: '0755'  # Permisos de lectura y o ejecución para otros
+        state: directory
 
     - name: 8. Iniciar Nginx
       service:
