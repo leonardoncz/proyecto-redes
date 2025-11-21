@@ -2,23 +2,41 @@
 - name: Configurar Servidor Web Flask en AWS (Frontend)
   hosts: aws_web
   become: yes
+  gather_facts: no
   vars:
     # Es la IP privada de la VM de Azure
     db_host: "{{ azure_private_ip }}" #irá al pipeline
-    
+
+
+  pre_tasks:
+    # 1. Instalar Python 3.8 usando comandos ssh
+    # Amazon Linux 2 usa amazon-linux-extras para versiones nuevas
+    - name: Bootstrap Python 3.8 (Raw SSH)
+      raw: "sudo amazon-linux-extras install python3.8 -y && sudo yum install -y python38-devel gcc"
+      changed_when: false
+
+    # 2. Ordenarle a Ansible que use el nuevo Python
+    - name: Cambiar Python a 3.8
+      set_fact:
+        ansible_python_interpreter: /usr/bin/python3.8
+
+    # 3. Recolectar datos activado
+    - name: Recolectar Facts (Ahora que tenemos Python 3.8)
+      setup:
 
   tasks:
     - name: 1. Instalar paquetes de sistema (Nginx, Python, Pip)
       yum: # Usamos yum porque Amazon Linux 2 es basado en RedHat/CentOS
         name:
           - nginx
-          - python3
-          - python3-pip
           - git
           - postgresql-devel # Necesario para compilar psycopg2
-          - gcc # Necesario para compilar
-          - python3-devel # Necesario para compilar
         state: present
+
+    # Aseguramos tener pip
+    - name: 1.1 Asegurar pip para Python 3.8
+      shell: "python3.8 -m ensurepip --upgrade"
+      changed_when: false
 
     - name: 2. Instalar librerías de Python
       pip:
@@ -26,6 +44,7 @@
           - flask
           - gunicorn
           - psycopg2-binary # El driver de Postgres para Python
+        executable: pip3.8
 
     - name: 3. Crear directorio de la aplicación
       file:
@@ -63,7 +82,7 @@
           Environment="DB_PASS={{ db_password }}"
           # Comando de arranque
           ExecStart=/usr/local/bin/gunicorn --workers 3 --bind unix:app.sock -m 007 app:app
-
+          
           [Install]
           WantedBy=multi-user.target
       notify: Reiniciar App
