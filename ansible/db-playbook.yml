@@ -91,11 +91,18 @@
     - name: 6. Crear usuario de aplicación con contraseña
       become: yes
       become_user: postgres
-      postgresql_user:
-        db: "{{ db_name }}"
+      community.general.postgresql_user:
         name: "{{ db_user }}"
         password: "{{ db_password }}"
-        priv: "ALL"
+
+    - name: 6.1. Asignar privilegios al usuario
+      become: yes
+      become_user: postgres
+      community.general.postgresql_privs:
+        db: "{{ db_name }}"
+        role: "{{ db_user }}"
+        privs: ALL
+        type: database  # Asigna permisos sobre toda la base de datos
 
     - name: 7. Crear tabla de Empleados e insertar datos iniciales
       become_user: postgres # Ejecutar como el usuario postgres
