@@ -25,7 +25,8 @@ jobs:
         python-version: '3.x'
 
     - name: Install Ansible
-      run: pip install ansible requests
+      # Instalamos ansible-core 2.16.x que soporta Python 3.8 en el target
+      run: pip install "ansible-core>=2.16,<2.17" ansible
 
     # 3. Desplegar AWS (Pilar 1)
     - name: Terraform Init & Apply (AWS)
