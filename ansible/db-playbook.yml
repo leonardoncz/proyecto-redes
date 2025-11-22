@@ -121,6 +121,15 @@
           ('Carlos Lopez', 'Analista Financiero', 10)
           ON CONFLICT DO NOTHING;
 
+    - name: 8. Otorgar permisos de lectura/escritura al usuario de la app
+      become_user: postgres
+      postgresql_privs:
+        db: "{{ db_name }}"
+        role: "{{ db_user }}"    # El usuario app_user
+        objs: ALL_IN_SCHEMA      # Todas las tablas
+        privs: SELECT,INSERT,UPDATE,DELETE
+        type: table              # Tipo de objeto
+        
   # Handlers, solo se ejecutarán si una tarea notifica un cambio
   handlers:
     - name: Reiniciar Postgres
