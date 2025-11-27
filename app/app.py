@@ -17,4 +17,4 @@ def dashboard():
     return render_template('index.html', data=data, error=error, server_ip=server_ip)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000) #alternativa puerto 5432
+    app.run(host='0.0.0.0', port=5000) #o alternativa puerto 5432

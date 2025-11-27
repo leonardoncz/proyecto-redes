@@ -1,6 +1,6 @@
 # Configurar el proveedor de AWS
 provider "aws" {
-  region = "us-east-1"
+  region = "us-east-1" #norte de virginia
 }
 
 # Definir la versión del proveedor a usar

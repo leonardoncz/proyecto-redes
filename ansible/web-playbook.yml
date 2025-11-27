@@ -31,7 +31,7 @@
 
   tasks:
     - name: 1. Instalar paquetes de sistema (Nginx, Python, Pip)
-      yum: # Usamos yum porque Amazon Linux 2 es basado en RedHat/CentOS
+      yum: # Usamos yum porque Amazon Linux 2 es basado en RedHat
         name:
           - nginx
           - git
@@ -56,7 +56,7 @@
         mode: '0755'
 
     - name: 4. Copiar código de la aplicación (App + Templates)
-      # Ansible busca en tu máquina local (../app) y lo sube a la VM
+      # Ansible buscará en máquina local (../app) y lo subirá a la VM
       copy:
         src: "../app/" 
         dest: "/var/www/app/"
@@ -64,7 +64,7 @@
         group: ec2-user
 
     - name: 5. Configurar servicio Systemd para Gunicorn (Tu App)
-      # Esto convierte tu script de Python en un servicio de fondo
+      # Esto convierte script de Python en un servicio de fondo
       copy:
         dest: /etc/systemd/system/mi_app.service
         content: |
@@ -98,7 +98,6 @@
               server_name _;
 
               location / {
-                  # CORRECCIÓN: proxy_params no existe en Amazon Linux, los definimos a mano:
                   proxy_set_header Host $host;
                   proxy_set_header X-Real-IP $remote_addr;
                   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

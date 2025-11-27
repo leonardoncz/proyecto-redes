@@ -37,9 +37,8 @@ jobs:
       run: |
         cd aws
         terraform init
-        # Nota: Usamos una variable para la IP de Azure "placeholder" inicial 
-        # o esperamos que Azure se actualice en una segunda vuelta. 
-        # Para este flujo directo, asumimos despliegue inicial.
+        # Usamos una variable para la IP de Azure "placeholder" inicial 
+        # Asumimos despliegue inicial.
         terraform apply -auto-approve -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
         
         # CAPTURAR OUTPUTS PARA EL SIGUIENTE PASO
@@ -57,7 +56,7 @@ jobs:
         # guardarla en la ruta (proyecto-AZURE/id_rsa.pub)
         ssh-keygen -y -f private_key_temp.pem > proyecto-AZURE/id_rsa.pub
         
-        # (Opcional) Verificar que se creó
+        # Verificar que se creó
         ls -l proyecto-AZURE/id_rsa.pub
 
     # 4. Desplegar Azure (Pilar 2 + Conexión)
@@ -71,7 +70,7 @@ jobs:
       run: |
         cd proyecto-AZURE
         terraform init
-        # Le pasamos la IP que acabamos de crear en AWS
+        # Le pasaremos la IP que acabamos de crear en AWS
         terraform apply -auto-approve \
           -var="aws_vpn_ip_address=${{ steps.aws.outputs.VPN_IP_AWS }}" \
           -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
@@ -81,7 +80,7 @@ jobs:
         echo "DB_PRIVATE_IP=$(terraform output -raw db_private_ip)" >> $GITHUB_OUTPUT
         echo "BASTION_IP=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
 
-    # 5. Configurar Llaves SSH (Temporales en el Robot)
+    # 5. Configurar Llaves SSH (Temporales en el Robot de ghub)
     - name: Setup SSH Keys
       run: |
         mkdir -p ~/.ssh
@@ -105,7 +104,7 @@ jobs:
         ${{ steps.azure.outputs.DB_PRIVATE_IP }} ansible_user=azureuser ansible_ssh_private_key_file=~/.ssh/azure_key ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyCommand="ssh -W %h:%p -q azureuser@${{ steps.azure.outputs.BASTION_IP }} -i ~/.ssh/azure_key -o StrictHostKeyChecking=no"'
         EOF
         
-        echo "--- Inventario Generado ---"
+        echo "Inventario Generado"
         cat ansible/inventory.ini
 
     # 7. Ejecutar Ansible: Configurar Base de Datos (Azure)
@@ -131,13 +130,13 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         cd aws
-        # Aquí le pasamos la IP que capturamos del paso de Azure
-        # SE REALIZARAN DOS INTENTOS
+        # Aquí le pasamos la IP que capturamos del paso de Azure placeholder
+        # SE REALIZARÁN DOS INTENTOS
         terraform apply -auto-approve \
           -var="azure_vpn_public_ip=${{ steps.azure.outputs.VPN_IP_AZURE }}" \
           -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}" || (
 
-          echo "Falló primer intento, probablemente Race condition AWS)."
+          echo "Falló primer intento, probablemente Race condition AWS"
           sleep 420
           echo "Reintentar"
           terraform apply -auto-approve \

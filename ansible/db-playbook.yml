@@ -13,7 +13,7 @@
   tasks:
 
     - name: Esperar que el sistema de paquetes esté libre, ya que APT solo acepta un proceso a la vez
-      # Espera que el puerto 22 esté abierto (conexión) y luego espera a que el archivo de bloqueo de apt se libere.
+      # Espera que el puerto 22 esté abierto (conexión) y luego espera a que el archivo de bloqueo de apt se libere
       ansible.builtin.raw: while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 5; done
       changed_when: false
 
@@ -23,7 +23,7 @@
         sudo rm -f /var/lib/dpkg/lock-frontend
         sudo rm -f /var/lib/dpkg/lock
         sudo rm -f /var/cache/apt/archives/lock
-      ignore_errors: true # Permite que el playbook continúe si el archivo no existe
+      ignore_errors: true # Permitir que el playbook continúe si el archivo no existe
 
     - name: 1. Actualizar caché de apt e instalar PostgreSQL
       apt:
@@ -64,7 +64,7 @@
       notify: Reiniciar Postgres
 
     - name: 3. Configurar pg_hba.conf para aceptar conexiones desde AWS (VPN)
-      # Esto es el "Firewall de la Base de Datos"
+      # Esto es como el Firewall de la Base de Datos
       postgresql_pg_hba:
         dest: "{{ postgres_conf_path }}/pg_hba.conf"
         contype: host
@@ -80,7 +80,7 @@
         state: started
         enabled: yes
 
-    # --- Tareas de SQL (Creación de datos) ---
+    #Tareas de SQL (Creación de datos)
 
     - name: 5. Crear la base de datos 'nomina_db'
       become: yes
@@ -121,7 +121,7 @@
           ('Carlos Lopez', 'Analista Financiero', 10)
           ON CONFLICT DO NOTHING;
 
-  # Handlers, solo se ejecutarán si una tarea notifica un cambio
+  #Solo se ejecutarán si una tarea informa un cambio
   handlers:
     - name: Reiniciar Postgres
       service:
