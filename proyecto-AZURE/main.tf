@@ -218,14 +218,14 @@ resource "azurerm_virtual_network_gateway" "main" {
   }
 }
 
-#17 El "Puntero" a AWS (Gateway de Red Local)
+#17 El Puntero a AWS (Gateway de Red Local)
 resource "azurerm_local_network_gateway" "aws" {
   name                = "lng-hacia-aws"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 
   # MARCADOR DE POSICIÓN 1
-  # IP PÚBLICA del pilar de AWS (TUNEL 1)
+  # IP PÚBLICA de AWS (TUNEL 1)
   gateway_address = var.aws_vpn_ip_address
 
   # Las redes que queremos alcanzar en AWS (VPC-Hub y VPC-Prod)

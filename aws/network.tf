@@ -1,4 +1,4 @@
-# La VPC principal que recibirá la VPN y los servicios web
+#La VPC principal que recibirá la VPN y los servicios web
 
 resource "aws_vpc" "hub" {
   cidr_block           = "10.10.0.0/16" # Red 10.10.x.x
@@ -9,7 +9,7 @@ resource "aws_vpc" "hub" {
   }
 }
 
-# La VPC privada para bases de datos (para el requisito de Peering)
+#La VPC privada para el requisito de Peering
 
 resource "aws_vpc" "prod" {
   cidr_block           = "10.11.0.0/16" # Red 10.11.x.x
@@ -20,18 +20,18 @@ resource "aws_vpc" "prod" {
   }
 }
 
-# --- Subredes para la VPC-Hub ---
+#Subredes para la VPC-Hub
 resource "aws_subnet" "hub_public" {
   vpc_id                  = aws_vpc.hub.id
   cidr_block              = "10.10.1.0/24"
-  map_public_ip_on_launch = true # Importante ya que da IPs públicas a las VMs
+  map_public_ip_on_launch = true #Da IPs públicas a las VMs
   availability_zone       = "us-east-1a"
   tags = {
     Name = "Subnet-Hub-Public"
   }
 }
 
-# --- Subredes para la VPC-Prod ---
+#Subredes para la VPC-Prod
 resource "aws_subnet" "prod_private" {
   vpc_id     = aws_vpc.prod.id
   cidr_block = "10.11.1.0/24"
@@ -41,7 +41,7 @@ resource "aws_subnet" "prod_private" {
   }
 }
 
-# --- Internet Gateway (Solo para el Hub) ---
+#Internet Gateway solo para el Hub
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.hub.id
   tags = {
@@ -49,7 +49,7 @@ resource "aws_internet_gateway" "gw" {
   }
 }
 
-# --- Tabla de Rutas (Para hacer PÚBLICA la subred del Hub) ---
+#Tabla de Rutas para hacer pública la subred del Hub
 resource "aws_route_table" "hub_public_rt" {
   vpc_id = aws_vpc.hub.id
 
@@ -64,33 +64,33 @@ resource "aws_route" "hub_internet_access" {
   gateway_id             = aws_internet_gateway.gw.id
 }
 
-# --- Asociación (Conecta la tabla de rutas a la subred pública) ---
+#Asociación, conectar la tabla de rutas a la subred pública
 resource "aws_route_table_association" "a" {
   subnet_id      = aws_subnet.hub_public.id
   route_table_id = aws_route_table.hub_public_rt.id
 }
 
-# --- Conexión de Peering (Conecta Hub <-> Prod) ---
+#Conexión de Peering (Conecta Hub y Prod)
 resource "aws_vpc_peering_connection" "peering" {
   peer_vpc_id   = aws_vpc.prod.id
   vpc_id        = aws_vpc.hub.id
-  auto_accept   = true # Acepta automáticamente la conexión
+  auto_accept   = true #Aceptar automáticamente la conexión
 
   tags = {
     Name = "Peering-Hub-Prod"
   }
 }
 
-# --- Rutas para el Peering ---
-# 1. Enseña al Hub cómo llegar a Prod
+#Rutas para el Peering
+#1. Enseñar al Hub cómo llegar a Prod
 resource "aws_route" "hub_to_prod" {
   route_table_id            = aws_route_table.hub_public_rt.id
   destination_cidr_block    = aws_vpc.prod.cidr_block # (10.11.0.0/16)
   vpc_peering_connection_id = aws_vpc_peering_connection.peering.id
 }
 
-# 2. Enseña a Prod cómo llegar al Hub
-# (Necesitamos una tabla de rutas para Prod primero)
+#2. Enseñar a Prod cómo llegar al Hub
+#Necesitamos una tabla de rutas para Prod primero
 resource "aws_route_table" "prod_private_rt" {
   vpc_id = aws_vpc.prod.id
   tags = {

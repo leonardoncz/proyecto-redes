@@ -7,7 +7,7 @@ def get_connection():
         db_host = os.environ.get('DB_HOST', '127.0.0.1')
         db_name = os.environ.get('DB_NAME', 'nomina_db')
         db_user = os.environ.get('DB_USER', 'postgres')
-        db_password = os.environ.get('DB_PASS', '1234')
+        db_password = os.environ.get('DB_PASS', '1234') #en realidad no es 1234, lo extraerá del env
 
         conn = psycopg2.connect(
         connect_timeout=5,

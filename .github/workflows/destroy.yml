@@ -1,3 +1,4 @@
+#Por el momento no lo usaremos por problemas con la memoria de terraform
 name: 'DESTRUIR TODO'
 
 on:
