@@ -113,12 +113,22 @@
               id SERIAL PRIMARY KEY,
               nombre VARCHAR(100),
               puesto VARCHAR(100),
-              vacaciones INT
+              vacaciones INT,
+              salario_base DECIMAL(10,2) DEFAULT 3000.00,
+              fecha_ingreso DATE DEFAULT CURRENT_DATE,
+              departamento VARCHAR(50) DEFAULY 'IT'
           );
-          INSERT INTO empleados (nombre, puesto, vacaciones) VALUES 
-          ('Juan Perez', 'Ingeniero DevOps', 15),
-          ('Maria Garcia', 'Gerente HR', 22),
-          ('Carlos Lopez', 'Analista Financiero', 10)
+          INSERT INTO empleados (nombre, puesto, vacaciones, salario_base, fecha_ingreso, departamento) VALUES 
+          ('Roberto Gomez', 'Arquitecto Cloud', 20, 9500.00, '2020-03-15', 'Ingeniería'),
+          ('Lucia Mendez', 'DevOps Junior', 10, 3500.00, '2024-01-10', 'Ingeniería'),
+          ('Carlos Ruiz', 'Gerente de Ventas', 5, 8200.00, '2019-06-01', 'Ventas'),
+          ('Diana Quispe', 'Contadora Senior', 18, 5500.00, '2021-08-22', 'Finanzas'),
+          ('Miguel Angel', 'Soporte TI', 12, 2800.00, '2023-11-05', 'IT'),
+          ('Sofia Vergara', 'Directora de RRHH', 25, 12000.00, '2018-02-14', 'Recursos Humanos'),
+          ('Jorge Vega', 'Desarrollador Frontend', 15, 6000.00, '2022-05-30', 'Ingeniería'),
+          ('Elena Castillo', 'Analista de Marketing', 8, 4200.00, '2023-03-12', 'Marketing'),
+          ('Pedro Castillo', 'Pasante', 0, 1200.00, '2024-10-01', 'IT'),
+          ('Fernanda Lopez', 'Jefe de Proyectos', 22, 7800.00, '2020-11-19', 'Operaciones')
           ON CONFLICT DO NOTHING;
 
     - name: 8. Otorgar permisos de lectura/escritura al usuario de la app
