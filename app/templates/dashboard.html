@@ -3,97 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalTalent | Panel de Nómina</title>
+    <title>GlobalTalent | Enterprise ERP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { background-color: #f4f6f9; }
+        .sidebar { min-height: 100vh; background: #343a40; color: white; }
+        .sidebar a { color: #cfd8dc; text-decoration: none; padding: 10px 15px; display: block; border-left: 3px solid transparent; }
+        .sidebar a:hover, .sidebar a.active { background: #495057; color: white; border-left-color: #0d6efd; }
+        .card-icon { font-size: 2rem; opacity: 0.8; }
+        .status-badge { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-        <div class="container">
-            <a class="navbar-brand" href="#"><i class="fa-solid fa-globe"></i> GlobalTalent Connect</a>
-            <span class="navbar-text text-white">
-                <small>Conectado a Azure S2S VPN</small>
-            </span>
+    <nav class="navbar navbar-expand navbar-light bg-white shadow-sm border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-primary" href="#">
+                <i class="fa-solid fa-layer-group"></i> Sistema de Nóminas <span class="text-secondary fw-light">Proyecto Redes</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-success-subtle text-success border border-success me-3">
+                    <i class="fa-solid fa-network-wired"></i> VPN Azure: <strong>ONLINE</strong>
+                </span>
+                
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none text-dark dropdown-toggle" data-bs-toggle="dropdown">
+                        <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 35px; height: 35px;">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <small class="fw-bold d-none d-md-block">Admin AWS</small>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ url_for('construccion') }}">Configuración</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('construccion') }}">Logs de Auditoría</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('construccion') }}">Cerrar Sesión</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        
-        {% if error %}
-        <div class="alert alert-danger" role="alert">
-            <i class="fa-solid fa-triangle-exclamation"></i> Error de Conexión VPN: {{ error }}
-        </div>
-        {% endif %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2 d-none d-md-block sidebar pt-3">
+                <p class="text-uppercase text-muted small px-3 fw-bold">Gestión</p>
+                <a href="{{ url_for('dashboard') }}" class="active"><i class="fa-solid fa-gauge-high me-2"></i> Dashboard</a> <!-- usando Jinja2-->
+                <a href="{{ url_for('construccion') }}"><i class="fa-solid fa-users me-2"></i> Empleados</a>
+                <a href="{{ url_for('construccion') }}"><i class="fa-solid fa-money-bill-wave me-2"></i> Planillas</a>
+                <a href="{{ url_for('construccion') }}"><i class="fa-solid fa-chart-pie me-2"></i> Reportes</a>
+                
+                <p class="text-uppercase text-muted small px-3 fw-bold mt-4">Infraestructura</p>
+                <a href="{{ url_for('construccion') }}"><i class="fa-brands fa-aws me-2"></i> Estado AWS</a>
+                <a href="{{ url_for('construccion') }}"><i class="fa-brands fa-microsoft me-2"></i> Estado Azure</a>
+                <a href="{{ url_for('construccion') }}"><i class="fa-solid fa-server me-2"></i> Base de Datos</a>
+            </div>
 
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card text-white bg-success mb-3 shadow">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Empleados</h5>
-                        <h2 class="card-text">{{ total_emp }}</h2>
+            <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+                
+                {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fa-solid fa-circle-exclamation fa-2x me-3"></i>
+                        <div>
+                            <strong>Fallo Crítico en VPN Site-to-Site:</strong>
+                            <p class="mb-0">{{ error }}</p>
+                        </div>
                     </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-white bg-info mb-3 shadow">
-                    <div class="card-body">
-                        <h5 class="card-title">Gasto Mensual (Bruto)</h5>
-                        <h2 class="card-text">S/ {{ total_gasto }}</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-white bg-warning mb-3 shadow">
-                    <div class="card-body">
-                        <h5 class="card-title">Próximo Pago</h5>
-                        <h2 class="card-text">30 Nov</h2>
-                    </div>
-                </div>
-            </div>
-        </div>
+                {% endif %}
 
-        <div class="card shadow">
-            <div class="card-header bg-white border-0">
-                <h4 class="mb-0 text-primary"><i class="fa-solid fa-users"></i> Planilla General</h4>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Empleado</th>
-                                <th>Departamento</th>
-                                <th>Sueldo Base</th>
-                                <th>Descuentos</th>
-                                <th>Neto a Pagar</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for emp in empleados %}
-                            <tr>
-                                <td><span class="badge bg-secondary">{{ emp.id }}</span></td>
-                                <td>
-                                    <div class="fw-bold">{{ emp.nombre }}</div>
-                                    <div class="text-muted small">{{ emp.puesto }}</div>
-                                </td>
-                                <td>{{ emp.depto }}</td>
-                                <td class="text-primary">S/ {{ emp.calculos.bruto }}</td>
-                                <td class="text-danger">- S/ {{ emp.calculos.afp + emp.calculos.impuesto }}</td>
-                                <td class="fw-bold text-success">S/ {{ emp.calculos.neto }}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary">
-                                        <i class="fa-solid fa-file-invoice-dollar"></i> Ver Boleta
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Resumen Ejecutivo de Nómina</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Compartir</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Exportar</button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                            <i class="fa-solid fa-calendar"></i> Este mes
+                        </button>
+                    </div>
                 </div>
-            </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card h-100 border-start border-4 border-primary shadow-sm">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted text-uppercase mb-1">Total Empleados</h6>
+                                    <h2 class="mb-0 fw-bold">{{ total_emp }}</h2>
+                                    <small class="text-success"><i class="fa-solid fa-arrow-up"></i> 2 nuevos</small>
+                                </div>
+                                <div class="card-icon text-primary"><i class="fa-solid fa-users"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 border-start border-4 border-success shadow-sm">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted text-uppercase mb-1">Gasto Mensual</h6>
+                                    <h2 class="mb-0 fw-bold">S/ {{ total_gasto }}</h2>
+                                    <small class="text-muted">Proyectado</small>
+                                </div>
+                                <div class="card-icon text-success"><i class="fa-solid fa-sack-dollar"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 border-start border-4 border-warning shadow-sm">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted text-uppercase mb-1">Próximo Pago</h6>
+                                    <h2 class="mb-0 fw-bold">20 Diciembre</h2>
+                                    <small class="text-danger"><i class="fa-regular fa-clock"></i> Pendiente</small>
+                                </div>
+                                <div class="card-icon text-warning"><i class="fa-solid fa-calendar-check"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 border-start border-4 border-info shadow-sm">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted text-uppercase mb-1">Impuestos (8%)</h6>
+                                    <h2 class="mb-0 fw-bold">S/ {{ (total_gasto * 0.08) | round(2) }}</h2>
+                                    <small class="text-info">Retención SUNAT</small>
+                                </div>
+                                <div class="card-icon text-info"><i class="fa-solid fa-file-invoice"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="mb-0"><i class="fa-solid fa-chart-simple text-primary me-2"></i>Distribución de Presupuesto (Simulado)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Ingeniería</span>
+                                        <span class="fw-bold">45%</span>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 45%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Ventas</span>
+                                        <span class="fw-bold">25%</span>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 25%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Recursos Humanos</span>
+                                        <span class="fw-bold">15%</span>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: 15%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Administración</span>
+                                        <span class="fw-bold">15%</span>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 15%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="mb-0"><i class="fa-solid fa-list-ul text-warning me-2"></i>Actividad Reciente</h5>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-primary rounded-pill mb-1">AWS</span>
+                                        <small class="d-block text-muted">Despliegue completado</small>
+                                    </div>
+                                    <small class="text-muted">Hace 10 min</small>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-success rounded-pill mb-1">DB</span>
+                                        <small class="d-block text-muted">Backup automático en Azure</small>
+                                    </div>
+                                    <small class="text-muted">Hace 1h</small>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-info rounded-pill mb-1">Nómina</span>
+                                        <small class="d-block text-muted">Cálculo de AFP actualizado</small>
+                                    </div>
+                                    <small class="text-muted">Ayer</small>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-primary"><i class="fa-solid fa-table me-2"></i>Detalle de Planilla</h5>
+                        <div class="input-group w-25">
+                            <input type="text" class="form-control form-control-sm" placeholder="Buscar empleado...">
+                            <button class="btn btn-outline-secondary btn-sm" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">ID</th>
+                                        <th>Empleado</th>
+                                        <th>Departamento</th>
+                                        <th>Ingreso</th>
+                                        <th class="text-end">Sueldo Base</th>
+                                        <th class="text-end">Desc. Ley</th>
+                                        <th class="text-end pe-4">Neto a Pagar</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for emp in empleados %}
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-muted">#{{ emp.id }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                                    {{ emp.nombre[0] }}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold text-dark">{{ emp.nombre }}</div>
+                                                    <div class="text-muted small">{{ emp.puesto }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-light text-dark border">{{ emp.depto }}</span></td>
+                                        <td class="text-muted small">2023-01-15</td> <td class="text-end">S/ {{ emp.calculos.bruto }}</td>
+                                        <td class="text-end text-danger small">- S/ {{ (emp.calculos.afp + emp.calculos.impuesto) | round(2) }}</td>
+                                        <td class="text-end pe-4 fw-bold text-success">S/ {{ emp.calculos.neto | round(2) }}</td>
+                                        <td><span class="badge bg-success">Activo</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" title="Ver Boleta">
+                                                <i class="fa-solid fa-file-invoice"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary" title="Editar">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Mostrando 1 a {{ total_emp }} de {{ total_emp }} entradas</small>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item disabled"><a class="page-link" href="{{ url_for('construccion') }}">Anterior</a></li>
+                                <li class="page-item active"><a class="page-link" href="{{ url_for('construccion') }}">1</a></li>
+                                <li class="page-item"><a class="page-link" href="{{ url_for('construccion') }}">2</a></li>
+                                <li class="page-item"><a class="page-link" href="{{ url_for('construccion') }}">3</a></li>
+                                <li class="page-item"><a class="page-link" href="{{ url_for('construccion') }}">Siguiente</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+            </main>
         </div>
     </div>
 

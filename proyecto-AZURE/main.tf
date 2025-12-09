@@ -6,6 +6,15 @@ terraform {
     }
   }
   required_version = ">= 1.0.0"
+  # Guardamos el estado de Azure en el S3 de AWS
+  backend "s3" {
+    bucket         = "proyectoredes-tfstate-4892" # El mismo bucket
+    key            = "azure-infra/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
+
 }
 
 provider "azurerm" {

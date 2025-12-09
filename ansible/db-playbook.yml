@@ -5,7 +5,7 @@
   vars:
     db_name: "nomina_db"
     db_user: "app_user"
-    # En un entorno real, esto iría en un Vault cifrado
+    # En un entorno real, esto iría cifrado
     db_password: "TuPasswordSeguro123!"
     # La red de AWS que tiene permiso para entrar (VPC-Hub)
     aws_subnet_cidr: "10.10.0.0/16" 
@@ -116,7 +116,7 @@
               vacaciones INT,
               salario_base DECIMAL(10,2) DEFAULT 3000.00,
               fecha_ingreso DATE DEFAULT CURRENT_DATE,
-              departamento VARCHAR(50) DEFAULY 'IT'
+              departamento VARCHAR(50) DEFAULT 'IT'
           );
           INSERT INTO empleados (nombre, puesto, vacaciones, salario_base, fecha_ingreso, departamento) VALUES 
           ('Roberto Gomez', 'Arquitecto Cloud', 20, 9500.00, '2020-03-15', 'Ingeniería'),
