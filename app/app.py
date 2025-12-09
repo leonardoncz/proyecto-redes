@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
-from conexion import get_db_data, insert_employee
+from conexion import get_connection
 import locale
 
 app = Flask(__name__)
@@ -18,7 +18,7 @@ def calcular_nomina(salario_bruto):
 @app.route('/')
 def dashboard():
     # 1. Traer datos de Azure
-    raw_data, error = get_db_data()
+    raw_data, error = get_connection()
     empleados_procesados = []
     total_gasto = 0
     
