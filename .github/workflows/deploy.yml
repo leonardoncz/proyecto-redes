@@ -1,7 +1,12 @@
 name: 'Despliegue total de la Infrastructura'
 
 on:
-  workflow_dispatch: # Botón manual para iniciar
+  workflow_dispatch:
+     # Botón manual para iniciar
+  push:
+    branches:
+      - main
+      # Cada vez que hay push en main
 
 jobs:
   deploy-infra-and-app:
