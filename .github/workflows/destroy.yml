@@ -28,7 +28,8 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: "us-east-1"
       run: |
-        cd proyecto-AZURE 
+        cd proyecto-AZURE
+        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDk5..." > id_rsa.pub
         terraform init
         # Destruye usando variables dummy para evitar errores de validación
         terraform destroy -auto-approve \
