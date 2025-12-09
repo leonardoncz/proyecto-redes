@@ -1,5 +1,4 @@
-#Por el momento no lo usaremos por problemas con la memoria de terraform
-name: 'DESTRUIR TODO'
+name: 'Destrucción de la Infrastructura'
 
 on:
   workflow_dispatch:
@@ -12,30 +11,39 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
 
-    # Destruir Azure
+    # 1. Destruir Azure
     - name: Terraform Destroy (Azure)
       env:
+        # Credenciales para borrar recursos en Azure
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        # Credenciales para leer el estado (.tfstate) desde el Bucket S3
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: "us-east-1"
       run: |
-        cd azure
+        cd proyecto-AZURE 
         terraform init
-        # Necesitamos pasar variables aunque vayamos a destruir
+        # Destruye usando variables dummy para evitar errores de validación
         terraform destroy -auto-approve \
           -var="aws_vpn_ip_address=1.1.1.1" \
           -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
 
-    # Destruir AWS
+    # 2. Destruir AWS
     - name: Terraform Destroy (AWS)
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: "us-east-1"
       run: |
         cd aws
         terraform init
-        terraform destroy -auto-approve -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
+        terraform destroy -auto-approve \
+          -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}" \
+          -var="azure_vpn_public_ip=1.1.1.1" # Dummy IP

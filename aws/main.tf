@@ -11,4 +11,12 @@ terraform {
       version = "~> 5.0" # Usa una versión reciente
     }
   }
+  
+  backend "s3" {
+    bucket         = "proyectoredes-tfstate-4892"
+    key            = "aws-infra/terraform.tfstate"      #La ruta dentro del bucket
+    region         = "us-east-1"
+    dynamodb_table = "terraform-locks"                  #Tabla creada
+    encrypt        = true
+  }
 }

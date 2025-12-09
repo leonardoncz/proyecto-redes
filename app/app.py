@@ -38,5 +38,9 @@ def dashboard():
 
     return render_template('dashboard.html',empleados=empleados_procesados,total_gasto=total_gasto,total_emp=len(empleados_procesados),error=error)
 
+@app.route('/construccion')
+def construccion():
+    return render_template('construccion.html')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
