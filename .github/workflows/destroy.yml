@@ -29,7 +29,7 @@ jobs:
         AWS_DEFAULT_REGION: "us-east-1"
       run: |
         cd proyecto-AZURE
-        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDk5..." > id_rsa.pub
+        ssh-keygen -t rsa -b 4096 -f id_rsa -N ""
         terraform init
         # Destruye usando variables dummy para evitar errores de validación
         terraform destroy -auto-approve \
