@@ -10,9 +10,6 @@ on:
     paths:
       - 'aws/**'
       - 'proyecto-AZURE/**'
-    paths-ignore:
-      - 'app/**'
-      - 'ansible/**'
 
 jobs:
   deploy-infra-and-app:
