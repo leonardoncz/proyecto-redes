@@ -6,9 +6,6 @@ on:
     paths:
       - 'app/**'      #Cuando se modifique app
       - 'ansible/**'  #Cuando se modifique ansible
-    paths-ignore:
-      - 'aws/**'
-      - 'proyecto-AZURE/**'
   
   workflow_run:
     workflows: ["Infrastructure Deployment"]
