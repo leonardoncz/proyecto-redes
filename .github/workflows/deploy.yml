@@ -1,4 +1,4 @@
-name: 'Despliegue total de la Infrastructura'
+name: 'Infrastructure Deployment'
 
 on:
   workflow_dispatch:
@@ -7,10 +7,16 @@ on:
     branches:
       - main
       # Cada vez que hay push en main
+    paths:
+      - 'aws/**'
+      - 'proyecto-AZURE/**'
+    paths-ignore:
+      - 'app/**'
+      - 'ansible/**'
 
 jobs:
   deploy-infra-and-app:
-    name: 'Construir y Configurar'
+    name: 'Build Infrastructure'
     runs-on: ubuntu-latest
     
     steps:
@@ -23,15 +29,6 @@ jobs:
       uses: hashicorp/setup-terraform@v2
       with: 
         terraform_wrapper: false
-    
-    - name: Setup Python (para Ansible)
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-
-    - name: Install Ansible
-      # Instalamos ansible-core 2.16.x que soporta Python 3.8 en el target
-      run: pip install "ansible-core>=2.16,<2.17" ansible
 
     # 3. Desplegar AWS
     - name: Terraform Init & Apply (AWS)
@@ -42,8 +39,7 @@ jobs:
       run: |
         cd aws
         terraform init
-        # Usamos una variable para la IP de Azure "placeholder" inicial 
-        # Asumimos despliegue inicial.
+        # usaremos una variable para la IP de Azure "placeholder" inicial 
         terraform apply -auto-approve -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
         
         # CAPTURAR OUTPUTS PARA EL SIGUIENTE PASO
@@ -90,50 +86,7 @@ jobs:
         echo "DB_PRIVATE_IP=$(terraform output -raw db_private_ip)" >> $GITHUB_OUTPUT
         echo "BASTION_IP=$(terraform output -raw public_ip)" >> $GITHUB_OUTPUT
 
-    # 5. Configurar Llaves SSH (Temporales en el Robot de ghub)
-    - name: Setup SSH Keys
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_KEY_AWS }}" > ~/.ssh/aws_key.pem
-        echo "${{ secrets.SSH_KEY_AZURE }}" > ~/.ssh/azure_key
-        chmod 600 ~/.ssh/aws_key.pem
-        chmod 600 ~/.ssh/azure_key
-
-    # Paso de precaución: Esperar a que las VMs terminen de arrancar
-    - name: Wait for SSH to be ready
-      run: sleep 120 # Espera 120 seg
-
-    # 6. Generar Inventario de Ansible Dinámico
-    - name: Create Ansible Inventory
-      run: |
-        cat <<EOF > ansible/inventory.ini
-        [aws_web]
-        ${{ steps.aws.outputs.WEB_PUBLIC_IP }} ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/aws_key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'
-
-        [azure_db]
-        ${{ steps.azure.outputs.DB_PRIVATE_IP }} ansible_user=azureuser ansible_ssh_private_key_file=~/.ssh/azure_key ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyCommand="ssh -W %h:%p -q azureuser@${{ steps.azure.outputs.BASTION_IP }} -i ~/.ssh/azure_key -o StrictHostKeyChecking=no"'
-        EOF
-        
-        echo "Inventario Generado"
-        cat ansible/inventory.ini
-
-    # 7. Ejecutar Ansible: Configurar Base de Datos (Azure)
-    - name: Run Playbook (Database)
-      env:
-        ANSIBLE_HOST_KEY_CHECKING: 'False'
-      run: |
-        ansible-playbook -i ansible/inventory.ini ansible/db-playbook.yml \
-          --extra-vars "db_password=${{ secrets.DB_PASSWORD }}"
-
-    # 8. Ejecutar Ansible: Configurar Web App (AWS)
-    - name: Run Playbook (Web App)
-      env:
-        ANSIBLE_HOST_KEY_CHECKING: 'False'
-      run: |
-        ansible-playbook -i ansible/inventory.ini ansible/web-playbook.yml \
-          --extra-vars "azure_private_ip=${{ steps.azure.outputs.DB_PRIVATE_IP }} db_password=${{ secrets.DB_PASSWORD }}"
-
-    # 9. Actualizar AWS con la IP real de Azure
+    # 5. Actualizar AWS con la IP real de Azure
     - name: Update AWS with Azure IP
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -153,3 +106,23 @@ jobs:
               -var="azure_vpn_public_ip=${{ steps.azure.outputs.VPN_IP_AZURE }}" \
               -var="vpn_shared_key=${{ secrets.VPN_SHARED_KEY }}"
           )
+      # 6. Guardar inventario en S3
+    - name: Save Inventory to S3
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        AWS_IP="${{ steps.aws.outputs.WEB_PUBLIC_IP }}"
+        AZURE_IP="${{ steps.azure.outputs.DB_PRIVATE_IP }}"
+
+        echo "Generate inventory"
+        #AWS
+        echo "[web]" > inventory_s3.ini
+        echo "$AWS_IP ansible_user=ubuntu ansible_ssh_private_key_file=id_rsa_aws.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory_s3.ini
+        #AZURE, INCLUDING JUMP FROM AWS TO CONFIGURE DB
+        #PROXYJUMP
+        echo "[db]" >> inventory_s3.ini
+        cho "$AZURE_IP ansible_user=azureuser ansible_ssh_private_key_file=id_rsa_azure.pem ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p -q ubuntu@$AWS_IP -i id_rsa_aws.pem -o StrictHostKeyChecking=no\" -o StrictHostKeyChecking=no'" >> inventory_s3.ini
+
+        #Subir a S3
+        aws s3 cp inventory_s3.ini s3://proyectoredes-tfstate-4892/inventory.ini

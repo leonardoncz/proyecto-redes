@@ -5,7 +5,7 @@
   vars:
     db_name: "nomina_db"
     db_user: "app_user"
-    # En un entorno real, esto iría cifrado
+    # En entorno real, esto es cifrado
     db_password: "TuPasswordSeguro123!"
     # La red de AWS que tiene permiso para entrar (VPC-Hub)
     aws_subnet_cidr: "10.10.0.0/16" 
@@ -124,10 +124,10 @@
           ('Carlos Ruiz', 'Gerente de Ventas', 5, 8200.00, '2019-06-01', 'Ventas'),
           ('Diana Quispe', 'Contadora Senior', 18, 5500.00, '2021-08-22', 'Finanzas'),
           ('Miguel Angel', 'Soporte TI', 12, 2800.00, '2023-11-05', 'IT'),
-          ('Sofia Vergara', 'Directora de RRHH', 25, 12000.00, '2018-02-14', 'Recursos Humanos'),
+          ('María Vergara', 'Directora de RRHH', 25, 12000.00, '2018-02-14', 'Recursos Humanos'),
           ('Jorge Vega', 'Desarrollador Frontend', 15, 6000.00, '2022-05-30', 'Ingeniería'),
           ('Elena Castillo', 'Analista de Marketing', 8, 4200.00, '2023-03-12', 'Marketing'),
-          ('Pedro Castillo', 'Pasante', 0, 1200.00, '2024-10-01', 'IT'),
+          ('Pablo Castillo', 'Pasante', 0, 1200.00, '2024-10-01', 'IT'),
           ('Fernanda Lopez', 'Jefe de Proyectos', 22, 7800.00, '2020-11-19', 'Operaciones')
           ON CONFLICT DO NOTHING;
 

@@ -1,4 +1,4 @@
-name: 'Destrucción de la Infrastructura'
+name: 'Infrastructure Destruction'
 
 on:
   workflow_dispatch:
