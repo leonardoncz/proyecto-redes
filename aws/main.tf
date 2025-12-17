@@ -13,7 +13,7 @@ terraform {
   }
   
   backend "s3" {
-    bucket         = "proyectoredes-tfstate-4892"
+    bucket         = "proyectoredes-tfstate-4892" #YOU SHOULD CHANGE THIS NAME TO THE NAME OF YOUR BUCKET
     key            = "aws-infra/terraform.tfstate"      #La ruta dentro del bucket
     region         = "us-east-1"
     dynamodb_table = "terraform-locks"                  #Tabla creada

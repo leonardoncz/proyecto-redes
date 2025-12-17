@@ -1,0 +1,70 @@
+name: 'Configure and Deploy Application'
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'app/**'      #Cuando se modifique app
+      - 'ansible/**'  #Cuando se modifique ansible
+    paths-ignore:
+      - 'aws/**'
+      - 'proyecto-AZURE/**'
+  
+  workflow_run:
+    workflows: ["Infrastructure Deployment"]
+    types: [completed] #Trigger cuando se complete el anterior workflow
+    branches:
+      - main
+
+jobs:
+  deploy-app:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} #SOLO CORRER CUANDO SEA EXITOSO EL WORKFLOW
+    name: 'Configure Application with Ansible'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Ansible
+        # Instalar ansible-core 2.16.x que soporta Python 3.8 en el target
+        run: pip install "ansible-core>=2.16,<2.17" ansible
+        
+        #recuperar la memoria (inventario) desde S3
+      - name: Download Inventory from S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "us-east-1"
+        run: |
+          aws s3 cp s3://proyectoredes-tfstate-4892/inventory.ini ./inventory.ini
+          #Verificar contenido
+          cat inventory.ini
+
+        #configurar llaves SSH
+      - name: Setup SSH Keys
+        run: |
+          echo "${{ secrets.SSH_KEY_AWS }}" > id_rsa_aws.pem
+          echo "${{ secrets.SSH_KEY_AZURE }}" > id_rsa_azure.pem
+          chmod 600 id_rsa_aws.pem id_rsa_azure.pem
+
+        # Ejecutar Ansible: Configurar Base de Datos (Azure)
+      - name: Run Playbook (Database)
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: 'False'
+        run: |
+          ansible-playbook -i ansible/inventory.ini ansible/db-playbook.yml \
+            --extra-vars "db_password=${{ secrets.DB_PASSWORD }}"
+
+      # Ejecutar Ansible: Configurar Web App (AWS)
+      - name: Run Playbook (Web App)
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: 'False'
+        run: |
+          DB_PRIVATE_IP=$(grep -A 1 "\[db\]" inventory.ini | tail -n 1 | awk '{print $1}')
+          ansible-playbook -i ansible/inventory.ini ansible/web-playbook.yml \
+            --extra-vars "azure_private_ip=${{ steps.azure.outputs.DB_PRIVATE_IP }} db_password=${{ secrets.DB_PASSWORD }}"
