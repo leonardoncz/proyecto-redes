@@ -119,7 +119,7 @@ jobs:
         #AZURE, INCLUDING JUMP FROM AWS TO CONFIGURE DB
         #PROXYJUMP
         echo "[db]" >> inventory_s3.ini
-        cho "$AZURE_IP ansible_user=azureuser ansible_ssh_private_key_file=id_rsa_azure.pem ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p -q ubuntu@$AWS_IP -i id_rsa_aws.pem -o StrictHostKeyChecking=no\" -o StrictHostKeyChecking=no'" >> inventory_s3.ini
+        echo "$AZURE_IP ansible_user=azureuser ansible_ssh_private_key_file=id_rsa_azure.pem ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p -q ubuntu@$AWS_IP -i id_rsa_aws.pem -o StrictHostKeyChecking=no\" -o StrictHostKeyChecking=no'" >> inventory_s3.ini
 
         #Subir a S3
         aws s3 cp inventory_s3.ini s3://proyectoredes-tfstate-4892/inventory.ini
