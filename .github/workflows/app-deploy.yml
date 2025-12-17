@@ -15,7 +15,7 @@ on:
 
 jobs:
   deploy-app:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }} #SOLO CORRER CUANDO SEA EXITOSO EL WORKFLOW
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }} #SOLO CORRER CUANDO SEA EXITOSO EL WORKFLOW
     name: 'Configure Application with Ansible'
     runs-on: ubuntu-latest
     steps:
@@ -38,9 +38,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "us-east-1"
         run: |
-          aws s3 cp s3://proyectoredes-tfstate-4892/inventory.ini ./inventory.ini
+          aws s3 cp s3://proyectoredes-tfstate-4892/inventory.ini ansible/inventory.ini
           #Verificar contenido
-          cat inventory.ini
+          cat ansible/inventory.ini
 
         #configurar llaves SSH
       - name: Setup SSH Keys
@@ -62,6 +62,6 @@ jobs:
         env:
           ANSIBLE_HOST_KEY_CHECKING: 'False'
         run: |
-          DB_PRIVATE_IP=$(grep -A 1 "\[db\]" inventory.ini | tail -n 1 | awk '{print $1}')
+          DB_PRIVATE_IP=$(grep -A 1 "\[db\]" ansible/inventory.ini | tail -n 1 | awk '{print $1}')
           ansible-playbook -i ansible/inventory.ini ansible/web-playbook.yml \
-            --extra-vars "azure_private_ip=${{ steps.azure.outputs.DB_PRIVATE_IP }} db_password=${{ secrets.DB_PASSWORD }}"
+            --extra-vars "azure_private_ip=$DB_PRIVATE_IP db_password=${{ secrets.DB_PASSWORD }}"
