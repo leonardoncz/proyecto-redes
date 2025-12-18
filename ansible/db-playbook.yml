@@ -1,6 +1,6 @@
 ---
 - name: Configurar BD PostgreSQL en Azure
-  hosts: azure_db
+  hosts: db
   become: yes  # Ejecutar todo como root (sudo)
   vars:
     db_name: "nomina_db"
