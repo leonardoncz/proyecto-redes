@@ -45,8 +45,8 @@ jobs:
         #configurar llaves SSH
       - name: Setup SSH Keys
         run: |
-          printf "%s\n" "${{ secrets.SSH_KEY_AWS }}" > id_rsa_aws.pem
-          printf "%s\n" "${{ secrets.SSH_KEY_AZURE }}" > id_rsa_azure.pem
+          echo "${{ secrets.SSH_KEY_AWS }}" > id_rsa_aws.pem
+          echo "${{ secrets.SSH_KEY_AZURE }}" > id_rsa_azure.pem
           chmod 600 id_rsa_aws.pem id_rsa_azure.pem
 
         # Ejecutar Ansible: Configurar Base de Datos (Azure)
