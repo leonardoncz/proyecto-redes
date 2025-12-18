@@ -21,7 +21,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        
+
+      - name: 90 sec Wait
+        run: |
+          sleep 90s
+          
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -30,22 +34,7 @@ jobs:
       - name: Install Ansible
         # Instalar ansible-core 2.16.x que soporta Python 3.8 en el target
         run: pip install "ansible-core>=2.16,<2.17" ansible
-     
-      
-      - name: Network Connectivity Test
-        run: |
-          echo "=== 1. Probando conexión a AWS (Jump Host) ==="
-          # Extraer IP pública de AWS
-          AWS_IP=$(grep -A 1 "\[web\]" ansible/inventory.ini | tail -n 1 | awk '{print $1}')
-          echo "AWS IP: $AWS_IP"
-          
-          # Prueba simple de puerto 22 con timeout de 5 segundos
-          nc -z -v -w 5 $AWS_IP 22 || echo "AWS INACCESIBLE (Revisar Security Group)"
-
-          echo "=== 2. Probando conexión interna a Azure (Vía Tunel) ==="
-          # Intentamos ejecutar un comando remoto en AWS para ver si AWS ve a Azure
-          ssh -o StrictHostKeyChecking=no -i id_rsa_aws.pem ec2-user@$AWS_IP "ping -c 3 10.0.2.4" || echo "TÚNEL VPN CAÍDO (AWS no llega a Azure)" 
-       
+        
         #recuperar la memoria (inventario) desde S3
       - name: Download Inventory from S3
         env:
