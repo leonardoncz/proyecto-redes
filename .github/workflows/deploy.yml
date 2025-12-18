@@ -115,11 +115,11 @@ jobs:
         echo "Generate inventory"
         #AWS
         echo "[web]" > inventory_s3.ini
-        echo "$AWS_IP ansible_user=ubuntu ansible_ssh_private_key_file=id_rsa_aws.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory_s3.ini
+        echo "$AWS_IP ansible_user=ec2-user ansible_ssh_private_key_file=id_rsa_aws.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory_s3.ini
         #AZURE, INCLUDING JUMP FROM AWS TO CONFIGURE DB
         #PROXYJUMP
         echo "[db]" >> inventory_s3.ini
-        echo "$AZURE_IP ansible_user=azureuser ansible_ssh_private_key_file=id_rsa_azure.pem ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p -q ubuntu@$AWS_IP -i id_rsa_aws.pem -o StrictHostKeyChecking=no\" -o StrictHostKeyChecking=no'" >> inventory_s3.ini
+        echo "$AZURE_IP ansible_user=azureuser ansible_ssh_private_key_file=id_rsa_azure.pem ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p -q ec2-user@$AWS_IP -i id_rsa_aws.pem -o StrictHostKeyChecking=no\" -o StrictHostKeyChecking=no'" >> inventory_s3.ini
 
         #Subir a S3
         aws s3 cp inventory_s3.ini s3://proyectoredes-tfstate-4892/inventory.ini
