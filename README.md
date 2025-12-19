@@ -59,7 +59,7 @@ This project uses a **Chained Workflow** strategy to optimize deployment times.
 1. **Create a Branch:** Create a feature branch (e.g., `feature/update-infra`).
 2. **Push Changes:** Commit and push your changes to the cloned repository.
 3. **Pull Request:** Open a Pull Request (PR) to merge into `main`.
-4. **Merge:** Once approved, merge the PR.entonces es oportuno mencionar est
+4. **Merge:** Once approved, merge the PR.
 
 ### Automatic Trigger Logic
 
