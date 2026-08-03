@@ -1,0 +1,257 @@
+<mxfile host="app.diagrams.net" agent="hand-authored" version="24.7.17" type="device">
+  <diagram id="pipeline" name="Pipeline">
+    <mxGraphModel dx="2400" dy="1620" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1620" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- =========================== TRIGGERS ========================== -->
+        <mxCell id="trigA" value="&lt;b&gt;push to main&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;paths: aws/**&lt;br&gt;proyecto-AZURE/**&lt;/font&gt;"
+          style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#24292E;strokeColor=#1B1F23;fontColor=#FFFFFF;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="270" width="250" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="trigDispatch" value="&lt;b&gt;workflow_dispatch&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;manual button, Actions tab&lt;/font&gt;"
+          style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#57606A;strokeColor=#424A53;fontColor=#FFFFFF;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="400" width="250" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="trigB" value="&lt;b&gt;push — fast path&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;paths: app/** , ansible/**&lt;br&gt;skips Terraform entirely&lt;/font&gt;"
+          style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#24292E;strokeColor=#1B1F23;fontColor=#FFFFFF;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1090" width="250" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="trigD" value="&lt;b&gt;workflow_dispatch&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;manual only&lt;/font&gt;"
+          style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#57606A;strokeColor=#424A53;fontColor=#FFFFFF;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1450" width="250" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== LANE A — INFRASTRUCTURE =================== -->
+        <mxCell id="laneA" value="Infrastructure Deployment&#160;&#160;·&#160;&#160;.github/workflows/deploy.yml&#160;&#160;·&#160;&#160;runs-on: ubuntu-latest"
+          style="rounded=0;whiteSpace=wrap;html=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;fillColor=#F7F2FC;strokeColor=#7B42BC;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#7B42BC;" vertex="1" parent="1">
+          <mxGeometry x="340" y="150" width="1680" height="440" as="geometry" />
+        </mxCell>
+
+        <mxCell id="handshake" value="&lt;b&gt;Cross-cloud IP handshake&lt;/b&gt;&#160;&#160;—&#160;&#160;neither gateway's public IP exists until the other cloud has been applied, so AWS is applied twice: once with a placeholder, then again with the real Azure IP"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4E5;strokeColor=#E8A33D;dashed=1;dashPattern=6 3;verticalAlign=middle;align=center;fontSize=11;fontColor=#7A5200;" vertex="1" parent="laneA">
+          <mxGeometry x="305" y="48" width="1100" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="a1" value="&lt;b&gt;1. Checkout + tooling&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;actions/checkout@v3&lt;br&gt;hashicorp/setup-terraform@v2&lt;br&gt;terraform_wrapper: false&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7B42BC;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneA">
+          <mxGeometry x="30" y="160" width="230" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="a2" value="&lt;b&gt;2. terraform apply — AWS&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;azure_vpn_public_ip = placeholder&lt;br&gt;&lt;i&gt;outputs&lt;/i&gt;: web_server_ip,&lt;br&gt;vpn_tunnel1_address&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7B42BC;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneA">
+          <mxGeometry x="305" y="160" width="230" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="a3" value="&lt;b&gt;3. Derive Azure public key&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;ssh-keygen -y from SSH_KEY_AZURE&lt;br&gt;→ proyecto-AZURE/id_rsa.pub&lt;br&gt;never committed to the repo&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7B42BC;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneA">
+          <mxGeometry x="580" y="160" width="230" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="a4" value="&lt;b&gt;4. terraform apply — Azure&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;aws_vpn_ip_address = &lt;i&gt;real&lt;/i&gt;&lt;br&gt;&lt;i&gt;outputs&lt;/i&gt;: vpn_gateway_public_ip,&lt;br&gt;db_private_ip, public_ip&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7B42BC;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneA">
+          <mxGeometry x="855" y="160" width="230" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="a5" value="&lt;b&gt;5. terraform apply — AWS again&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;azure_vpn_public_ip = &lt;i&gt;real&lt;/i&gt;&lt;br&gt;closes the tunnel&lt;br&gt;&lt;b&gt;retry after sleep 420&lt;/b&gt; on race&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7B42BC;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneA">
+          <mxGeometry x="1130" y="160" width="230" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="a6" value="&lt;b&gt;6. Publish inventory&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;builds [web] and [db] groups,&lt;br&gt;[db] carries the ProxyCommand&lt;br&gt;aws s3 cp → inventory.ini&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7B42BC;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneA">
+          <mxGeometry x="1405" y="160" width="230" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- ======================= LANE B — SHARED STATE ================== -->
+        <mxCell id="laneB" value="Shared state&#160;&#160;·&#160;&#160;the only thing that survives between workflow runs"
+          style="rounded=0;whiteSpace=wrap;html=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;fillColor=#FFF8EC;strokeColor=#FF9900;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#B36A00;" vertex="1" parent="1">
+          <mxGeometry x="340" y="650" width="1680" height="210" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3" value="S3 · proyectoredes-tfstate-4892"
+          style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#60A337;gradientDirection=north;fillColor=#277116;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.bucket;" vertex="1" parent="laneB">
+          <mxGeometry x="200" y="70" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3keys" value="&lt;b&gt;aws-infra/terraform.tfstate&lt;/b&gt;&#160;&#160;— AWS state&lt;br&gt;&lt;b&gt;azure-infra/terraform.tfstate&lt;/b&gt;&#160;&#160;— Azure state, kept in S3 too&lt;br&gt;&lt;b&gt;inventory.ini&lt;/b&gt;&#160;&#160;— hosts + ProxyCommand, handed to the next workflow"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E8A33D;verticalAlign=middle;align=left;spacingLeft=14;fontSize=11;fontColor=#232F3E;" vertex="1" parent="laneB">
+          <mxGeometry x="330" y="65" width="620" height="88" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ddb" value="DynamoDB · terraform-locks"
+          style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#4D72F3;gradientDirection=north;fillColor=#3334B9;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;" vertex="1" parent="laneB">
+          <mxGeometry x="1050" y="70" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ddbnote" value="State locking — prevents two&lt;br&gt;concurrent applies corrupting state"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E8A33D;verticalAlign=middle;align=left;spacingLeft=14;fontSize=11;fontColor=#232F3E;" vertex="1" parent="laneB">
+          <mxGeometry x="1180" y="79" width="330" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== LANE C — APPLICATION ====================== -->
+        <mxCell id="laneC" value="Configure and Deploy Application&#160;&#160;·&#160;&#160;.github/workflows/app-deploy.yml&#160;&#160;·&#160;&#160;runs-on: ubuntu-latest"
+          style="rounded=0;whiteSpace=wrap;html=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;fillColor=#FDF1F2;strokeColor=#C62D42;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#C62D42;" vertex="1" parent="1">
+          <mxGeometry x="340" y="920" width="1680" height="360" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1" value="&lt;b&gt;1. Setup Ansible&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;actions/setup-python@v4&lt;br&gt;ansible-core &amp;gt;=2.16,&amp;lt;2.17&lt;br&gt;pinned for Python 3.8 targets&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C62D42;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneC">
+          <mxGeometry x="30" y="130" width="290" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c2" value="&lt;b&gt;2. Fetch inventory&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;aws s3 cp s3://…/inventory.ini&lt;br&gt;→ ansible/inventory.ini&lt;br&gt;recovers the topology&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C62D42;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneC">
+          <mxGeometry x="360" y="130" width="290" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c3" value="&lt;b&gt;3. Install SSH keys&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;SSH_KEY_AWS → id_rsa_aws.pem&lt;br&gt;SSH_KEY_AZURE → id_rsa_azure.pem&lt;br&gt;chmod 600&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C62D42;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneC">
+          <mxGeometry x="690" y="130" width="290" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c4" value="&lt;b&gt;4. db-playbook.yml&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;PostgreSQL on Azure vm-privada&lt;br&gt;listen_addresses, pg_hba, schema&lt;br&gt;&lt;b&gt;reached via ProxyJump&lt;/b&gt;&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C62D42;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneC">
+          <mxGeometry x="1020" y="130" width="290" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c5" value="&lt;b&gt;5. web-playbook.yml&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;nginx + gunicorn + Flask on AWS&lt;br&gt;azure_private_ip injected as DB_HOST&lt;br&gt;systemd unit mi_app.service&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C62D42;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneC">
+          <mxGeometry x="1350" y="130" width="290" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- ====================== LANE D — DESTRUCTION ==================== -->
+        <mxCell id="laneD" value="Infrastructure Destruction&#160;&#160;·&#160;&#160;.github/workflows/destroy.yml&#160;&#160;·&#160;&#160;manual only"
+          style="rounded=0;whiteSpace=wrap;html=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;fillColor=#F5F5F5;strokeColor=#616161;strokeWidth=2;dashed=1;dashPattern=8 4;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#424242;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1400" width="1680" height="170" as="geometry" />
+        </mxCell>
+
+        <mxCell id="d1" value="&lt;b&gt;terraform destroy — Azure first&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;regenerates a throwaway id_rsa.pub so the plan validates&#160;&#160;·&#160;&#160;dummy aws_vpn_ip_address = 1.1.1.1&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#616161;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneD">
+          <mxGeometry x="30" y="60" width="640" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="d2" value="&lt;b&gt;terraform destroy — AWS second&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;dummy azure_vpn_public_ip = 1.1.1.1&#160;&#160;·&#160;&#160;the VPN gateway must go before the VPC it is attached to&lt;/font&gt;"
+          style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#616161;fontColor=#232F3E;fontSize=11;verticalAlign=middle;align=center;" vertex="1" parent="laneD">
+          <mxGeometry x="790" y="60" width="660" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- =========================== SECRETS =========================== -->
+        <mxCell id="secrets" value="&lt;b&gt;GitHub repository secrets&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;AWS_ACCESS_KEY_ID&lt;br&gt;AWS_SECRET_ACCESS_KEY&lt;br&gt;&lt;br&gt;AZURE_CLIENT_ID&lt;br&gt;AZURE_CLIENT_SECRET&lt;br&gt;AZURE_SUBSCRIPTION_ID&lt;br&gt;AZURE_TENANT_ID&lt;br&gt;&lt;br&gt;VPN_SHARED_KEY&lt;br&gt;DB_PASSWORD&lt;br&gt;&lt;br&gt;SSH_KEY_AWS&lt;br&gt;SSH_KEY_AZURE&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#8A8886;dashed=1;dashPattern=6 3;verticalAlign=top;align=left;spacingLeft=14;spacingTop=10;fontSize=12;fontColor=#232F3E;" vertex="1" parent="1">
+          <mxGeometry x="2080" y="150" width="280" height="440" as="geometry" />
+        </mxCell>
+
+        <!-- ============================ EDGES ============================ -->
+        <mxCell id="e_trigA" value=""
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#24292E;strokeWidth=2;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="trigA" target="a1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_trigDispatch" value=""
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#57606A;strokeWidth=2;dashed=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="trigDispatch" target="a1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_a1a2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7B42BC;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a1" target="a2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a2a3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7B42BC;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a2" target="a3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a3a4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7B42BC;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a3" target="a4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a4a5" value="&lt;b&gt;VPN_IP_AZURE&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E8A33D;strokeWidth=3;fontColor=#7A5200;fontSize=11;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="a4" target="a5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a5a6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7B42BC;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a5" target="a6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- handshake: AWS tunnel IP jumps over step 3 into the Azure apply -->
+        <mxCell id="e_a2a4" value="&lt;b&gt;VPN_IP_AWS&lt;/b&gt;"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#E8A33D;strokeWidth=3;fontColor=#7A5200;fontSize=11;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="a2" target="a4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="760" y="520" />
+              <mxPoint x="1310" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- terraform remote backend -->
+        <mxCell id="e_backend" value="terraform init / apply&#160;&#160;↔&#160;&#160;remote backend, with lock"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B36A00;strokeWidth=2;dashed=1;fontColor=#B36A00;fontSize=11;startArrow=block;startFill=1;endArrow=block;endFill=1;exitX=0.15;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;labelBackgroundColor=#FFF8EC;" edge="1" parent="1" source="laneA" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- inventory publish -->
+        <mxCell id="e_a6s3" value="&lt;b&gt;inventory.ini&lt;/b&gt;"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B36A00;strokeWidth=2.5;fontColor=#B36A00;fontSize=11;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="a6" target="s3keys">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1860" y="620" />
+              <mxPoint x="980" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- workflow chaining -->
+        <mxCell id="e_chain" value="&lt;b&gt;workflow_run&lt;/b&gt;&#160;&#160;types: [completed]&#160;&#160;·&#160;&#160;runs only if conclusion == 'success'"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#24292E;strokeWidth=3;fontColor=#24292E;fontSize=11;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="a6" target="c1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1990" y="375" />
+              <mxPoint x="1990" y="893" />
+              <mxPoint x="515" y="893" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- inventory consume -->
+        <mxCell id="e_s3c2" value="&lt;b&gt;inventory.ini&lt;/b&gt;"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B36A00;strokeWidth=2.5;fontColor=#B36A00;fontSize=11;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="s3" target="c2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="579" y="905" />
+              <mxPoint x="845" y="905" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_trigB" value="&lt;b&gt;fast path&lt;/b&gt;"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#24292E;strokeWidth=2.5;fontColor=#24292E;fontSize=11;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="trigB" target="c1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_c1c2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C62D42;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c1" target="c2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2c3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C62D42;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c2" target="c3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3c4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C62D42;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c3" target="c4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c4c5" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;DB first, so the app&lt;br&gt;starts against a live schema&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C62D42;strokeWidth=2.5;fontColor=#C62D42;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c4" target="c5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_trigD" value=""
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#616161;strokeWidth=2;dashed=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="trigD" target="d1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_d1d2" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;order matters&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#616161;strokeWidth=2.5;fontColor=#424242;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=#F5F5F5;" edge="1" parent="1" source="d1" target="d2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

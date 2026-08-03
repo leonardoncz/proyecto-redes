@@ -1,0 +1,239 @@
+<mxfile host="app.diagrams.net" agent="hand-authored" version="24.7.17" type="device">
+  <diagram id="architecture" name="Architecture">
+    <mxGraphModel dx="2400" dy="1440" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1440" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ======================= EXTERNAL ACTORS ======================= -->
+        <mxCell id="users" value="End users&lt;br&gt;public internet"
+          style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#232F3D;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.users;" vertex="1" parent="1">
+          <mxGeometry x="60" y="350" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="runner" value="GitHub Actions&lt;br&gt;runner&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;ansible-playbook&lt;/font&gt;"
+          style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#24292E;strokeColor=#1B1F23;fontColor=#FFFFFF;fontSize=11;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="980" width="140" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- ============================== AWS ============================ -->
+        <mxCell id="aws" value="AWS  ·  us-east-1"
+          style="sketch=0;outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=14;fontStyle=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud;grStroke=1;strokeColor=#232F3E;fillColor=none;verticalAlign=top;align=left;spacingLeft=33;fontColor=#232F3E;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="260" y="140" width="1040" height="1040" as="geometry" />
+        </mxCell>
+
+        <mxCell id="vpcHub" value="VPC-Hub  ·  10.10.0.0/16"
+          style="sketch=0;outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=13;fontStyle=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_vpc;grStroke=1;strokeColor=#8C4FFF;fillColor=none;verticalAlign=top;align=left;spacingLeft=33;fontColor=#8C4FFF;dashed=0;" vertex="1" parent="aws">
+          <mxGeometry x="40" y="60" width="960" height="420" as="geometry" />
+        </mxCell>
+
+        <mxCell id="igw" value="IGW-Hub&lt;br&gt;0.0.0.0/0"
+          style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#945DF2;gradientDirection=north;fillColor=#5A30B5;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.internet_gateway;" vertex="1" parent="vpcHub">
+          <mxGeometry x="30" y="150" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="subnetPub" value="Subnet-Hub-Public  ·  10.10.1.0/24  ·  us-east-1a"
+          style="rounded=0;whiteSpace=wrap;html=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;fillColor=#E9F3E6;strokeColor=#248814;strokeWidth=1;dashed=1;dashPattern=8 4;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontSize=12;fontColor=#248814;" vertex="1" parent="vpcHub">
+          <mxGeometry x="160" y="70" width="600" height="280" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ec2web" value="WebServer-Hub&lt;br&gt;t3.micro · Amazon Linux 2&lt;br&gt;public IP · SG 22/80/ICMP"
+          style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#F78E04;gradientDirection=north;fillColor=#D05C17;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.ec2;" vertex="1" parent="subnetPub">
+          <mxGeometry x="60" y="80" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="nginx" value="nginx :80&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;reverse proxy&lt;/font&gt;"
+          style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#0F9D58;strokeColor=#0B7B45;fontColor=#FFFFFF;fontSize=11;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="subnetPub">
+          <mxGeometry x="230" y="80" width="130" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="gunicorn" value="gunicorn&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;3 workers · Flask app:app&lt;/font&gt;"
+          style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#499848;strokeColor=#357935;fontColor=#FFFFFF;fontSize=11;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="subnetPub">
+          <mxGeometry x="420" y="80" width="140" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="vgw" value="VGW-AWS-to-Azure&lt;br&gt;virtual private gateway"
+          style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#945DF2;gradientDirection=north;fillColor=#5A30B5;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.vpn_gateway;" vertex="1" parent="vpcHub">
+          <mxGeometry x="840" y="150" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="peering" value="Peering-Hub-Prod&lt;br&gt;auto_accept"
+          style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#945DF2;gradientDirection=north;fillColor=#5A30B5;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.peering;" vertex="1" parent="aws">
+          <mxGeometry x="680" y="560" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="vpcProd" value="VPC-Prod  ·  10.11.0.0/16"
+          style="sketch=0;outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=13;fontStyle=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_vpc;grStroke=1;strokeColor=#8C4FFF;fillColor=none;verticalAlign=top;align=left;spacingLeft=33;fontColor=#8C4FFF;dashed=0;" vertex="1" parent="aws">
+          <mxGeometry x="440" y="720" width="560" height="260" as="geometry" />
+        </mxCell>
+
+        <mxCell id="subnetProd" value="Subnet-Prod-Private  ·  10.11.1.0/24  ·  us-east-1a"
+          style="rounded=0;whiteSpace=wrap;html=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;fillColor=#E6F2F8;strokeColor=#147EBA;strokeWidth=1;dashed=1;dashPattern=8 4;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontSize=12;fontColor=#147EBA;" vertex="1" parent="vpcProd">
+          <mxGeometry x="40" y="60" width="480" height="170" as="geometry" />
+        </mxCell>
+
+        <mxCell id="testvm" value="TestVM-Prod&lt;br&gt;t3.micro · no public IP&lt;br&gt;SG 22 + ICMP from 10.10.0.0/16"
+          style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#F78E04;gradientDirection=north;fillColor=#D05C17;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.ec2;" vertex="1" parent="subnetProd">
+          <mxGeometry x="200" y="55" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- ============================= AZURE =========================== -->
+        <mxCell id="azure" value="Azure  ·  East US 2  ·  rg-proyecto-azure"
+          style="rounded=0;whiteSpace=wrap;html=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;fillColor=none;strokeColor=#0078D4;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=12;spacingTop=4;fontSize=14;fontStyle=1;fontColor=#0078D4;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1420" y="140" width="940" height="720" as="geometry" />
+        </mxCell>
+
+        <mxCell id="vnet" value="vnet-principal  ·  10.0.0.0/16"
+          style="rounded=0;whiteSpace=wrap;html=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;fillColor=none;strokeColor=#50E6FF;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=12;spacingTop=4;fontSize=13;fontStyle=1;fontColor=#0078D4;dashed=0;" vertex="1" parent="azure">
+          <mxGeometry x="40" y="60" width="860" height="620" as="geometry" />
+        </mxCell>
+
+        <mxCell id="gwSubnet" value="GatewaySubnet  ·  10.0.3.0/24"
+          style="rounded=0;whiteSpace=wrap;html=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;fillColor=#F2F2F2;strokeColor=#8A8886;strokeWidth=1;dashed=1;dashPattern=8 4;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontSize=12;fontColor=#605E5C;" vertex="1" parent="vnet">
+          <mxGeometry x="40" y="70" width="280" height="280" as="geometry" />
+        </mxCell>
+
+        <mxCell id="vng" value="vng-azure-a-aws&lt;br&gt;VpnGw1 · RouteBased"
+          style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;verticalLabelPosition=bottom;verticalAlign=top;fontColor=#232F3E;image=img/lib/azure2/networking/Virtual_Network_Gateways.svg;" vertex="1" parent="gwSubnet">
+          <mxGeometry x="110" y="80" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="subnetPriv" value="subnet-privada  ·  10.0.2.0/24  ·  no NSG attached"
+          style="rounded=0;whiteSpace=wrap;html=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;fillColor=#F2F2F2;strokeColor=#8A8886;strokeWidth=1;dashed=1;dashPattern=8 4;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontSize=12;fontColor=#605E5C;" vertex="1" parent="vnet">
+          <mxGeometry x="380" y="70" width="440" height="280" as="geometry" />
+        </mxCell>
+
+        <mxCell id="vmPrivada" value="vm-privada&lt;br&gt;Standard_B2s · Ubuntu 22.04&lt;br&gt;no public IP"
+          style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;verticalLabelPosition=bottom;verticalAlign=top;fontColor=#232F3E;image=img/lib/azure2/compute/Virtual_Machine.svg;" vertex="1" parent="subnetPriv">
+          <mxGeometry x="60" y="80" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="postgres" value="PostgreSQL :5432&lt;br&gt;nomina_db&lt;br&gt;pg_hba: md5 from 10.10.0.0/16"
+          style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=13;fillColor=#336791;strokeColor=#24455F;fontColor=#232F3E;fontSize=11;verticalLabelPosition=bottom;verticalAlign=top;align=center;" vertex="1" parent="subnetPriv">
+          <mxGeometry x="280" y="80" width="80" height="78" as="geometry" />
+        </mxCell>
+
+        <mxCell id="subnetPublica" value="subnet-publica  ·  10.0.1.0/24  ·  nsg-public (22, 80)  —  address space allocated, no workload in the data path"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E9F3E6;strokeColor=#248814;strokeWidth=1;dashed=1;dashPattern=8 4;verticalAlign=middle;align=left;spacingLeft=10;fontSize=12;fontColor=#248814;" vertex="1" parent="vnet">
+          <mxGeometry x="40" y="420" width="780" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ===================== BACKBONE: DATA PATH ===================== -->
+        <mxCell id="e_users_igw" value="HTTP :80"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1A73E8;strokeWidth=2.5;fontColor=#1A73E8;fontSize=11;fontStyle=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="users" target="igw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_igw_ec2" value=""
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1A73E8;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="igw" target="ec2web">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_ec2_nginx" value=""
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1A73E8;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ec2web" target="nginx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_nginx_gunicorn" value="unix socket&lt;br&gt;app.sock"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1A73E8;strokeWidth=2.5;fontColor=#1A73E8;fontSize=11;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="nginx" target="gunicorn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_gunicorn_vgw" value="psycopg2 :5432"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1A73E8;strokeWidth=2.5;fontColor=#1A73E8;fontSize=11;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="gunicorn" target="vgw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===================== THE IPSEC TUNNEL ======================== -->
+        <mxCell id="e_tunnel" value="&lt;b&gt;IPsec site-to-site · IKEv2 · PSK&lt;/b&gt;&lt;br&gt;static routes, no BGP"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B3261E;strokeWidth=6;fontColor=#B3261E;fontSize=12;startArrow=block;startFill=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="vgw" target="vng">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_vng_vm" value="to 10.0.2.x&lt;br&gt;private only"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1A73E8;strokeWidth=2.5;fontColor=#1A73E8;fontSize=11;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="vng" target="vmPrivada">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_vm_pg" value=""
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1A73E8;strokeWidth=2.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="vmPrivada" target="postgres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ======================= VPC PEERING =========================== -->
+        <mxCell id="e_hub_peer" value="to 10.11.0.0/16"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#00796B;strokeWidth=2;fontColor=#00796B;fontSize=11;endArrow=block;endFill=1;exitX=0.708;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="vpcHub" target="peering">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_peer_prod" value="to 10.10.0.0/16"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#00796B;strokeWidth=2;fontColor=#00796B;fontSize=11;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="peering" target="vpcProd">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===================== MANAGEMENT / SSH PATH =================== -->
+        <mxCell id="e_runner_ec2" value="SSH :22"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6A1B9A;strokeWidth=2;dashed=1;fontColor=#6A1B9A;fontSize=11;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="runner" target="ec2web">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="420" y="1019" />
+              <mxPoint x="420" y="470" />
+              <mxPoint x="540" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_ec2_vmpriv" value="SSH ProxyCommand -W  ·  jump host, through the tunnel"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6A1B9A;strokeWidth=2;dashed=1;fontColor=#6A1B9A;fontSize=11;endArrow=block;endFill=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="ec2web" target="vmPrivada">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="578" y="1220" />
+              <mxPoint x="1810" y="1220" />
+              <mxPoint x="1810" y="230" />
+              <mxPoint x="1939" y="230" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ============================ LEGEND =========================== -->
+        <mxCell id="legendBox" value="Legend"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#B0B7BE;verticalAlign=top;align=left;spacingLeft=12;spacingTop=4;fontSize=12;fontStyle=1;fontColor=#232F3E;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1240" width="600" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lg1" value="" style="endArrow=none;html=1;strokeColor=#B3261E;strokeWidth=6;" edge="1" parent="legendBox">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="20" y="45" as="sourcePoint" /><mxPoint x="80" y="45" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="lg1t" value="IPsec site-to-site tunnel — the only link between the two clouds"
+          style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#232F3E;" vertex="1" parent="legendBox">
+          <mxGeometry x="92" y="34" width="500" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lg2" value="" style="endArrow=none;html=1;strokeColor=#1A73E8;strokeWidth=2.5;" edge="1" parent="legendBox">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="20" y="72" as="sourcePoint" /><mxPoint x="80" y="72" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="lg2t" value="Application data path — browser to database, private IPs end to end"
+          style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#232F3E;" vertex="1" parent="legendBox">
+          <mxGeometry x="92" y="61" width="500" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lg3" value="" style="endArrow=none;html=1;strokeColor=#6A1B9A;strokeWidth=2;dashed=1;" edge="1" parent="legendBox">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="20" y="99" as="sourcePoint" /><mxPoint x="80" y="99" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="lg3t" value="SSH management path — reaches vm-privada only via the jump host"
+          style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#232F3E;" vertex="1" parent="legendBox">
+          <mxGeometry x="92" y="88" width="500" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lg4" value="" style="endArrow=none;html=1;strokeColor=#00796B;strokeWidth=2;" edge="1" parent="legendBox">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="20" y="126" as="sourcePoint" /><mxPoint x="80" y="126" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="lg4t" value="VPC peering — intra-AWS only; VPC-Prod has no route to Azure"
+          style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#232F3E;" vertex="1" parent="legendBox">
+          <mxGeometry x="92" y="115" width="500" height="22" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
