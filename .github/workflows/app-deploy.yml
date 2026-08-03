@@ -3,6 +3,8 @@ name: 'Configure and Deploy Application'
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main          #Solo desde main, para que ramas de trabajo no desplieguen
     paths:
       - 'app/**'      #Cuando se modifique app
       - 'ansible/**'  #Cuando se modifique ansible
