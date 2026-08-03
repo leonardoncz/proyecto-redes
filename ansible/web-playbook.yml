@@ -1,6 +1,6 @@
 ---
 - name: Configurar Servidor Web Flask en AWS (Frontend)
-  hosts: aws_web
+  hosts: web
   become: yes
   gather_facts: no
   vars:
